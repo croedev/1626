@@ -1,0 +1,27 @@
+RewriteEngine On
+RewriteCond %{HTTPS} off
+RewriteCond %{REQUEST_URI} !^/[0-9]+\..+\.cpaneldcv$
+RewriteCond %{REQUEST_URI} !^/\.well-known/acme-challenge/[0-9a-zA-Z_-]+$
+RewriteCond %{REQUEST_URI} !^/\.well-known/pki-validation/[A-F0-9]{32}\.txt(?:\ Comodo\ DCV)?$
+RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+RewriteEngine On
+RewriteBase /
+
+# 실제 파일이나 디렉토리가 존재하면 리라이팅하지 않음
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+
+# PHP 파일에 대한 직접 접근 허용
+RewriteCond %{REQUEST_URI} !\.php$
+
+# 모든 요청을 index.php로 리다이렉트
+RewriteRule ^(.*)$ index.php [QSA,L]
+
+# PHP 파일 실행 허용
+<FilesMatch "\.php$">
+    Require all granted
+</FilesMatch>
+
+# 관리자 페이지는 직접 PHP 파일에 접근
+RewriteRule ^admin/ - [L]

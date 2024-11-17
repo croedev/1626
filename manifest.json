@@ -1,0 +1,20 @@
+{
+  "name": "예수 세례주화 NFT 프로젝트",
+  "short_name": "예수 NFT",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#d4af37",
+  "icons": [
+    {
+      "src": "/assets/images/icon_jesus.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "/assets/images/icon_jesus.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

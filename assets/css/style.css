@@ -1,0 +1,302 @@
+body, html {
+    font-family: 'Noto Serif KR', serif;
+    background-color: #000;
+    color: #ffffff;
+    margin: 0;
+    padding: 0;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+}
+
+
+.footer {
+    background: linear-gradient(90deg, #a67c00, #e9b669);
+    color: #000;
+    text-align: center;
+    padding: 10px 0;
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    z-index: 10;
+}
+
+.nav-menu {
+    background: linear-gradient(90deg, #faebb9,#cea430, #b37b02);
+    position: fixed;
+    bottom: 0;
+    width: 100%;
+    display: flex;
+    justify-content: space-around;
+    padding: 13px 0 8px 0;
+    border: 0;
+    z-index: 11;
+}
+
+.nav-menu a {
+    color: #000;
+    text-decoration: none;
+    text-align: center;
+    flex: 1;
+    transition: color 0.3s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.nav-menu a:hover {
+    color: #ffffff;
+}
+
+.nav-menu i {
+    font-size: 24px;
+    margin-bottom: 2px;
+}
+
+.nav-menu span {
+    display: block;
+    font-size: 10px;
+}
+
+
+/* 특정 페이지에서 사용할 수 있는 배경색 클래스 */
+.bg-dark-gray {
+    background-color: #1a1a1a;
+}
+
+.bg-darker-gray {
+    background-color: #0a0a0a;
+}
+
+.bg-gold {
+    background-color: #d4af37;
+}
+
+
+
+/*구매 */
+
+.order-container {
+    max-width: 800px;
+    margin: 0px auto;
+    padding: 0 20px;
+}
+
+.price-display {
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.price-item {
+    text-align: center;
+}
+
+.price-label {
+    font-size: 0.9em;
+    color: #d4af37;
+}
+
+.price-value {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: #fff;
+}
+
+.price-arrow {
+    font-size: 1.5em;
+    color: #d4af37;
+}
+
+.current-tier-info {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 0.9em;
+    color: #fff;
+}
+
+.current-tier-info img {
+    width: 20px;
+    height: 20px;
+    margin-right: 5px;
+}
+
+.total-sold {
+    font-size: 3em;
+    font-weight: bold;
+    color: #d4af37;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.chart-container {
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.chart-container img {
+    max-width: 100%;
+    height: auto;
+}
+
+.order-form label {
+    display: block;
+    margin-bottom: 10px;
+    color: #d4af37;
+}
+
+.order-form input,
+.order-form select {
+    width: 100%;
+    padding: 10px;
+    margin-bottom: 20px;
+    border: 1px solid #d4af37;
+    border-radius: 5px;
+    background-color: #333;
+    color: #fff;
+}
+
+.order-form button {
+    display: block;
+    width: 100%;
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background: linear-gradient(to right, #d4af37, #f2d06b);
+    color: #000;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.order-form button:hover {
+    background: linear-gradient(to right, #f2d06b, #d4af37);
+}
+
+
+.total-sold {
+    font-size: 3em;
+    font-weight: bold;
+    color: #d4af37;
+    text-align: center;
+    margin-bottom: 20px;
+}
+
+.meter {
+    width: 100%;
+    height: 50px;
+    background-color: #b57b0e;
+    ;
+    border-radius: 25px;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+.meter-bar {
+    width: 0;
+    height: 100%;
+    background-color: #d4af37;
+    border-radius: 25px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    transition: width 1s ease-in-out;
+}
+
+.meter-text {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    color: #000;
+    font-weight: bold;
+}
+
+
+
+
+
+/* 모달 배경 */
+.modal {
+    display: none;
+    /* 기본적으로 숨김 */
+    position: fixed;
+    /* 화면에 고정 */
+    z-index: 1000;
+    /* 다른 요소보다 위에 표시 */
+    left: 0;
+    top: 0;
+    width: 100%;
+    /* 전체 화면 너비 */
+    height: 100%;
+    /* 전체 화면 높이 */
+    overflow: auto;
+    /* 내용이 넘칠 경우 스크롤 */
+    background-color: rgba(0, 0, 0, 0.5);
+    /* 반투명한 검은색 배경 */
+}
+
+/* 모달 콘텐츠 */
+.modal-content {
+    position: relative;
+    margin: 15% auto;
+    /* 화면 중앙에 위치 */
+    padding: 0;
+    border: none;
+    width: 80%;
+    max-width: 400px;
+    /* 최대 너비 */
+}
+
+/* 기존 logout-container 스타일 */
+.logout-container {
+    padding: 20px;
+    text-align: center;
+    background-color: rgba(0, 0, 0, 0.7);
+    border-radius: 10px;
+}
+
+.logout-message {
+    color: #d4af37;
+    font-size: 1.2em;
+    margin-bottom: 20px;
+}
+
+.home-link {
+    display: inline-block;
+    background: linear-gradient(to right, #d4af37, #f2d06b);
+    color: #000;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: opacity 0.3s;
+}
+
+.home-link:hover {
+    opacity: 0.8;
+}
+
+.button-group {
+    display: flex;
+    justify-content: end;
+    margin-top: 0px;
+    padding-top: 0px;
+}
+.btn-outline {
+    background-color: transparent;
+    border: 1px solid #d4af37;
+    color: #d4af37;
+    font-size: 0.8em;
+    padding: 5px 10px;
+    border-radius: 3px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin: 2px;
+}
+.btn-outline:hover {
+    background-color: #d4af37;
+    color: #000000;
+}

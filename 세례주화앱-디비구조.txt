@@ -1,0 +1,331 @@
+
+
+1. users 테이블 (기존 테이블 확장)
+users 테이블은 회원 정보를 관리하고, 추천인 및 직급 관리 등을 포함할 수 있습니다. 추천인 관계는 이미 referred_by 컬럼을 통해 관리되므로 referral_tree 테이블은 필요하지 않습니다. 단, 직급, 포인트, 수수료 관련 컬럼을 추가할 필요가 있습니다.
+---------------------------
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `organization` varchar(100) NOT NULL,
+  `referral_code` varchar(20) DEFAULT NULL,
+  `referral_link` varchar(255) DEFAULT NULL,
+  `referred_by` int(11) DEFAULT NULL,
+  `qr_code` varchar(255) DEFAULT NULL,
+  `reset_token` varchar(100) DEFAULT NULL,
+  `reset_token_expires` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `rank` enum('member','total_distributor','special_distributor') DEFAULT 'member',
+  `cash_points` decimal(10,2) DEFAULT 0.00,
+  `mileage_points` decimal(10,2) DEFAULT 0.00,
+  `commission_total` decimal(10,2) DEFAULT 0.00,
+  `last_purchase_date` date DEFAULT NULL,
+  `total_purchases` int(11) DEFAULT 0,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `phone` (`phone`),
+  UNIQUE KEY `referral_code` (`referral_code`),
+  KEY `referred_by` (`referred_by`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`referred_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+
+기능 설명
+rank: 사용자의 직급을 관리합니다. member는 기본 회원, total_distributor는 총판, special_distributor는 특판입니다.
+cash_points: 사용자가 현금화할 수 있는 포인트 (수익).
+mileage_points: 마일리지 포인트로, NFT 구매에 사용할 수 있습니다.
+commission_total: 사용자가 받은 총 수수료 누적 금액.
+last_purchase_date: 사용자의 마지막 구매 날짜. 승급 시 최근 구매일을 기준으로 관리할 수 있습니다.
+total_purchases: 사용자의 총 구매 수량을 저장합니다. 1,000개 이상이면 총판 승급, 10명의 총판을 육성하면 특판 승급 등 승급 조건을 계산할 수 있습니다.
+
+
+------------------
+2. orders 테이블 (기존 테이블 확장)
+orders 테이블은 NFT 구매 내역을 저장하며, 새로운 컬럼으로 부가세 계산과 NFT 인증서 번호를 추가할 필요가 있습니다.
+
+CREATE TABLE `orders` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `product_id` int(11) NOT NULL,
+  `quantity` int(11) NOT NULL,
+  `total_amount` decimal(10,2) NOT NULL,
+  `currency` char(3) DEFAULT 'KRW',
+  `status` enum('pending','paid','completed','cancelled') DEFAULT 'pending',
+  `payment_method` enum('bank','paypal') DEFAULT NULL,
+  `depositor_name` varchar(100) DEFAULT NULL,
+  `expected_deposit_date` date DEFAULT NULL,
+  `payment_date` datetime DEFAULT NULL,
+  `paypal_transaction_id` varchar(255) DEFAULT NULL,
+  `ip_address` varchar(45) DEFAULT NULL,
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `vat_amount` decimal(10,2) DEFAULT 0.00,
+  `certificate_number` varchar(100) DEFAULT NULL,
+  `discount_applied` decimal(10,2) DEFAULT 0.00,
+  `order_type` enum('regular','mileage') DEFAULT 'regular',
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `product_id` (`product_id`),
+  CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+
+기능 설명
+vat_amount: 구매 금액에 부가세를 저장합니다.
+certificate_number: 구매한 NFT의 인증서 번호.
+discount_applied: 총판 또는 특판 할인 금액을 기록합니다.
+order_type: 주문이 현금 결제인지 마일리지 결제인지를 구분합니다.
+
+-----
+
+3. commissions 테이블 (새로운 테이블)
+수수료 지급 내역을 관리하는 테이블입니다. 사용자별로 수수료 발생 내역을 기록합니다.
+
+CREATE TABLE `commissions` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `commission_type` enum('direct','indirect','override') NOT NULL,
+  `source_user_id` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  PRIMARY KEY (`id`),
+  KEY `user_id` (`user_id`),
+  KEY `source_user_id` (`source_user_id`),
+  CONSTRAINT `commissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `commissions_ibfk_2` FOREIGN KEY (`source_user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+
+
+CREATE TABLE `commissions` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,   -- 수수료를 받는 사용자 ID
+  `amount` DECIMAL(10,2) NOT NULL, -- 수수료 금액
+  `commission_type` ENUM('direct', 'indirect', 'override') NOT NULL, -- 수수료 유형 (직접 수익, 간접 수익, 직급 수익)
+  `source_user_id` INT(11) NOT NULL,  -- 수익이 발생한 하위 사용자 ID
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 수수료 발생 일시
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
+  FOREIGN KEY (`source_user_id`) REFERENCES `users`(`id`)
+);
+
+commission_type: 직접 추천 수수료, 하위 추천인으로부터 발생한 간접 수수료, 동급 직급에 의해 발생한 직급 수수료를 구분합니다.
+source_user_id: 수수료 발생의 원인이 된 하위 사용자의 ID를 기록합니다.
+
+
+----------------
+4. withdrawals 테이블 (새로운 테이블)
+출금 요청과 관련된 정보를 관리하는 테이블입니다. 사용자는 현금 포인트를 출금 요청할 수 있으며, 관리자가 이를 확인하고 처리합니다.
+
+CREATE TABLE `withdrawals` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `user_id` INT(11) NOT NULL,    -- 출금 요청을 하는 사용자 ID
+  `amount` DECIMAL(10,2) NOT NULL,  -- 출금 금액
+  `status` ENUM('pending', 'completed', 'rejected') DEFAULT 'pending', -- 출금 상태 (대기중, 완료, 거절)
+  `bank_name` VARCHAR(100),      -- 은행명
+  `account_number` VARCHAR(50),  -- 계좌번호
+  `account_holder` VARCHAR(100), -- 계좌주
+  `requested_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 출금 요청 일시
+  PRIMARY KEY (`id`),
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
+);
+
+기능 설명
+status: 관리자가 출금 요청을 승인하면 completed로 상태가 변경됩니다.
+bank_name, account_number, account_holder: 출금을 위한 계좌 정보.
+
+
+---------------
+5. pricing_tiers 테이블 (새로운 테이블)
+구간별 가격 및 수량을 저장하는 테이블입니다. 각 구간에서 판매된 수량에 따라 남은 수량을 관리하며, 구간이 소진되면 다음 구간으로 넘어갑니다.
+
+CREATE TABLE `pricing_tiers` (
+  `id` INT(11) NOT NULL AUTO_INCREMENT,
+  `tier_level` INT(11) NOT NULL,            -- 구간 번호
+  `price` DECIMAL(10,2) NOT NULL,           -- 구간 가격
+  `total_quantity` INT(11) NOT NULL,        -- 해당 구간의 전체 판매 수량
+  `remaining_quantity` INT(11) NOT NULL,    -- 해당 구간에서 남은 수량
+  PRIMARY KEY (`id`)
+);
+
+기능 설명
+각 구간별로 가격과 남은 수량을 관리하며, 구간이 소진되면 다음 구간으로 자동으로 넘어갑니다.
+
+1. 구간별 가격과 판매 수량을 미리 설정하는 방식
+장점:
+예측 가능성: 구간별로 가격과 수량을 미리 정의해 두면, 모든 구간에 대한 정보가 사전에 명확하게 설정되어 있어 관리와 유지보수가 쉬워집니다.
+관리 용이성: 각 구간이 완료될 때마다 테이블에서 다음 구간의 가격 및 수량을 자동으로 불러와 적용할 수 있습니다.
+데이터 추적 용이성: 각 구간별로 판매 추이를 구체적으로 기록할 수 있어 판매량과 잔여 수량을 시각화하거나 보고할 때 유리합니다.
+각 구간을 미리 설정하여 데이터베이스에 저장하고, 판매 수량이 0이 될 때마다 다음 구간을 불러오는 방식입니다.
+이 테이블에 구간별 가격과 수량을 미리 저장합니다.
+
+구현 방식:
+구매가 발생할 때마다, 현재 구간에서 남은 수량을 차감합니다.
+남은 수량이 0이 되면, 다음 구간의 가격과 수량을 자동으로 불러옵니다.
+각 구매가 일어날 때마다 pricing_tiers 테이블을 업데이트하여 남은 수량을 기록합
+
+
+function processPurchase($quantity) {
+    global $db;
+
+    // 현재 구간을 가져옵니다.
+    $query = "SELECT * FROM pricing_tiers WHERE remaining_quantity > 0 ORDER BY tier_level ASC LIMIT 1";
+    $result = $db->query($query);
+    $current_tier = $result->fetch_assoc();
+    
+    $current_tier_id = $current_tier['id'];
+    $remaining_quantity = $current_tier['remaining_quantity'];
+    
+    if ($quantity <= $remaining_quantity) {
+        // 구간 내에서 충분한 수량이 있는 경우
+        $new_remaining_quantity = $remaining_quantity - $quantity;
+        $update_query = "UPDATE pricing_tiers SET remaining_quantity = $new_remaining_quantity WHERE id = $current_tier_id";
+        $db->query($update_query);
+    } else {
+        // 현재 구간의 남은 수량을 모두 소진하고, 다음 구간으로 넘어가는 경우
+        $next_quantity = $quantity - $remaining_quantity;
+        $update_query = "UPDATE pricing_tiers SET remaining_quantity = 0 WHERE id = $current_tier_id";
+        $db->query($update_query);
+        // 남은 수량을 다음 구간으로 재귀 처리
+        processPurchase($next_quantity);
+    }
+}
+
+
+
+
+-----
+구간별 가격 관리: pricing_tiers 테이블을 통해 구간별 가격과 수량을 관리. (미리 각 구간별로 가격과 판매수량을 정해놈)
+수수료 관리: commissions 테이블에서 직접 수익, 간접 수익, 직급 수익을 관리.
+포인트 및 출금 관리: users 테이블의 포인트 관련 컬럼과 withdrawals 테이블을 통해 포인트 관리 및 출금 처리.
+구매 내역 및 할인 관리: orders 테이블에서 구매 내역과 할인 내역을 관리.
+
+
+
+----------------------------------------------
+
+config.php 설정 (수수료 정책 반영)
+
+
+<?php
+
+// 수수료 및 직급 관련 설정
+
+// 직급 승급 조건
+define('TOTAL_DISTRIBUTOR_THRESHOLD', 1000);  // 총판 승급 조건: 총 구매 수량 1000개
+define('SPECIAL_DISTRIBUTOR_THRESHOLD', 10);  // 특판 승급 조건: 하위 총판 10명
+
+// 수수료 지급 비율
+define('DISTRIBUTOR_COMMISSION', 0.30);  // 총판의 하위 조직 수익 수수료: 30%
+define('SPECIAL_DISTRIBUTOR_COMMISSION', 0.10);  // 특판의 하위 조직 수익 수수료: 10% (특판 제외)
+
+// 할인율
+define('DISTRIBUTOR_DISCOUNT', 0.30);  // 총판은 구매 시 30% 할인
+define('SPECIAL_DISTRIBUTOR_DISCOUNT', 0.40);  // 특판은 구매 시 40% 할인
+
+// 출금 관련 설정
+define('MIN_WITHDRAWAL_AMOUNT', 50000);  // 최소 출금 금액: 5만원
+define('WITHDRAWAL_FEE_RATE', 0.033);    // 출금 수수료율: 3.3%
+
+// 기타 설정
+define('PAGINATION_LIMIT', 20);  // 페이지네이션에서 한 페이지당 표시할 항목 수
+define('ADMIN_EMAIL', 'admin@nftsite.com');  // 관리자 이메일
+
+?>
+
+설명:
+승급 조건: TOTAL_DISTRIBUTOR_THRESHOLD, SPECIAL_DISTRIBUTOR_THRESHOLD를 통해 총판 및 특판 승급 조건을 설정.
+수수료 정책: DISTRIBUTOR_COMMISSION, SPECIAL_DISTRIBUTOR_COMMISSION를 통해 각 직급별 수익 배분 정책을 정의.
+할인 정책: 총판과 특판의 구매 할인율을 DISTRIBUTOR_DISCOUNT, SPECIAL_DISTRIBUTOR_DISCOUNT로 설정.
+출금 관련 설정: 최소 출금 금액과 수수료율을 MIN_WITHDRAWAL_AMOUNT와 WITHDRAWAL_FEE_RATE로 설정.
+기타 설정: 페이지네이션 설정과 관리자 이메일을 설정하여 기타 기본적인 정보 관리.
+
+
+-----------------------------
+
+**전체 파일 구조도**
+-----------------------------------------
+이 프로젝트는 세례주화 NFT 영업 및 수수료 지급 프로그램으로, 회원가입, 추천인 조직도, 직급에 따른 수수료 지급, NFT 구매 및 포인트 관리, 출금 요청 등의 주요 기능을 포함합니다. 또한, 관리자 페이지를 통해 수수료 정책, 출금 관리, 회원 관리 등을 수행할 수 있도록 해야 합니다. 이를 바탕으로, 각 기능을 완벽하게 수행할 수 있는 전체 파일 구조를 작성하겠습니다.
+
+파일 구조
+
+/ (루트 디렉토리)
+|-- index.php                     # 메인 페이지
+|-- config.php                    # 전역 설정 (수수료 정책, 출금 설정 등)
+|-- .htaccess                     # URL 리다이렉션 및 보안 설정
+|-- /includes/                    # 공통 모듈 디렉토리
+|    |-- header.php               # 상단 네비게이션 및 공통 헤더
+|    |-- footer.php               # 하단 푸터
+|    |-- functions.php            # 공통 함수 정의 파일 (수수료 계산, 승급 조건 체크 등)
+|-- /pages/                       # 각 기능별 페이지 파일
+|    |-- home.php                 # 메인 대시보드 페이지
+|    |-- login.php                # 로그인 페이지
+|    |-- logout.php               # 로그아웃 처리
+|    |-- register.php             # 회원가입 페이지 (추천인 입력 포함)
+|    |-- profile.php              # 사용자 프로필 페이지 (구매 내역, 추천인 정보, 직급 정보)
+|    |-- order.php                # NFT 구매 페이지
+|    |-- order_apply.php          # NFT 구매 신청 페이지
+|    |-- order_complete.php       # NFT 구매 완료 후 결과 페이지
+|    |-- commissions.php          # 수수료 내역 페이지 (직접/간접/직급 수익 확인)
+|    |-- withdraw.php             # 출금 요청 페이지
+|    |-- withdraw_history.php     # 출금 내역 조회 페이지
+|    |-- referral_organization.php # 추천인 조직도 조회 페이지
+|    |-- reset_password.php       # 비밀번호 재설정 페이지
+|    |-- forgot_password.php      # 비밀번호 분실 시 이메일 전송 페이지
+|    |-- admin/                   # 관리자 페이지 디렉토리
+|        |-- admin_dashboard.php  # 관리자 대시보드
+|        |-- admin_members.php    # 회원 관리 페이지 (회원 리스트, 직급 관리)
+|        |-- admin_commissions.php # 수수료 관리 페이지
+|        |-- admin_withdrawals.php # 출금 요청 관리 페이지
+|        |-- admin_settings.php   # 수수료 정책, 출금 설정 관리
+|-- /assets/                      # 정적 파일 디렉토리
+|    |-- css/                     # 스타일시트 디렉토리
+|    |-- js/                      # 자바스크립트 디렉토리
+|    |-- images/                  # 이미지 디렉토리
+|-- /uploads/                     # 사용자 업로드 파일 (예: NFT 인증서)
+
+
+각 파일 설명 및 역할
+1. 루트 디렉토리
+index.php: 메인 페이지로, 사용자가 처음 방문할 때 보여지는 대시보드입니다. 사용자의 구매 내역, 수익 내역, 직급 상태 등을 요약하여 보여줍니다.
+config.php: 프로젝트 전역에서 사용되는 수수료 정책, 출금 조건, 관리자 이메일 등의 설정을 담고 있습니다.
+.htaccess: URL 리다이렉션 및 보안을 위한 Apache 설정 파일입니다.
+
+2. includes/ (공통 모듈)
+header.php: 각 페이지의 상단 네비게이션과 공통 헤더를 정의합니다.
+footer.php: 각 페이지 하단의 푸터를 정의합니다.
+functions.php: 수수료 계산, 승급 조건 확인, 출금 가능 여부 등을 처리하는 공통 함수를 정의합니다. 예를 들어, 추천인 조직도 조회와 직급 승급 로직 등이 여기에 포함됩니다.
+
+3. pages/ (기능별 페이지)
+home.php: 사용자가 로그인 후 접속하는 메인 대시보드 페이지입니다. 총 수익, 직급 상태, 하위 추천인 실적, 구매 내역 등을 보여줍니다.
+login.php: 사용자 로그인 페이지입니다.
+logout.php: 로그아웃 처리 페이지입니다.
+register.php: 사용자 회원가입 페이지로, 추천인 코드를 입력받아 추천인 관계를 형성합니다.
+profile.php: 사용자의 개인 정보를 보여주는 페이지로, 구매 내역, 추천인 조직도, 직급 정보 등을 확인할 수 있습니다.
+order.php: NFT 구매 페이지로, 현재 구간별 가격과 남은 수량을 보여주고 사용자가 NFT를 구매할 수 있습니다.
+order_apply.php: 사용자가 NFT 구매를 신청하면 처리하는 페이지입니다.
+order_complete.php: NFT 구매가 완료된 후 결과를 보여주는 페이지입니다.
+commissions.php: 사용자의 수수료 내역을 보여주는 페이지입니다. 직접 수익, 간접 수익, 직급 수익을 확인할 수 있습니다.
+withdraw.php: 사용자가 현금 포인트를 출금 요청하는 페이지입니다.
+withdraw_history.php: 사용자의 출금 내역을 조회하는 페이지입니다.
+referral_organization.php: 사용자의 추천인 조직도를 시각적으로 보여주는 페이지입니다.
+reset_password.php: 비밀번호 재설정 페이지입니다.
+forgot_password.php: 비밀번호를 분실한 사용자가 이메일을 통해 비밀번호를 재설정할 수 있도록 도와주는 페이지입니다.
+
+4. admin/ (관리자 페이지)
+admin_dashboard.php: 관리자 대시보드로, 회원 수, 총 수익, 출금 요청 대기 등 주요 지표를 요약하여 보여줍니다.
+admin_members.php: 회원 관리 페이지로, 회원 리스트와 직급 상태를 확인하고, 회원의 직급을 수동으로 조정할 수 있습니다.
+admin_commissions.php: 전체 회원의 수수료 지급 내역을 관리하는 페이지입니다.
+admin_withdrawals.php: 출금 요청 내역을 관리하는 페이지로, 출금 요청을 승인하거나 거절할 수 있습니다.
+admin_settings.php: 수수료 정책, 출금 설정 등 시스템 전반의 설정을 관리하는 페이지입니다.
+
+5. assets/ (정적 파일)
+css/ (스타일시트): 각 페이지의 디자인과 스타일을 정의한 CSS 파일을 포함합니다.
+js/ (자바스크립트): 사용자 인터랙션 및 동적 UI 처리를 위한 자바스크립트 파일을 포함합니다.
+images/ (이미지): 로고, 배너, 아이콘 등 사이트에서 사용되는 이미지 파일들을 포함합니다.
+
+6. uploads/
+uploads/: 사용자가 업로드하는 NFT 인증서 파일 등이 저장되는 디렉토리입니다.
