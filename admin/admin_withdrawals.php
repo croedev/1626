@@ -77,7 +77,7 @@ $withdrawals = $result->fetch_all(MYSQLI_ASSOC);
 include 'admin_header.php';
 ?>
 
-<div class="container" style="padding:10px 0px; font-size:13px;">
+<div class="container-fluid" style="padding:10px 20px; font-size:13px; width:100%;">
     <h4>출금 신청 관리</h4>
 
     <?php if (isset($_SESSION['success_message'])): ?>
@@ -88,19 +88,20 @@ include 'admin_header.php';
         <div class="alert alert-danger"><?php echo $_SESSION['error_message']; unset($_SESSION['error_message']); ?></div>
     <?php endif; ?>
 
-    <div class="table-responsive" style="overflow-x: auto;">
-        <table class="table table-striped table-sm" style="min-width: 1200px;">
+    <div class="table-responsive" style="width:100%;">
+        <table class="table table-striped table-sm" style="width:100%;">
             <thead>
                 <tr>
                     <th style="min-width: 50px;">ID</th>
-                    <th style="min-width: 150px;">사용자 (ID)</th>
+                    <th style="min-width: 100px;">사용자 (ID)</th>
                     <th style="min-width: 100px;">요청 금액</th>
                     <th style="min-width: 80px;">수수료</th>
                     <th style="min-width: 100px;">은행명</th>
-                    <th style="min-width: 150px;">계좌 번호</th>
-                    <th style="min-width: 100px;">예금주</th>
-                    <th style="min-width: 150px;">요청일</th>
-                    <th style="min-width: 150px;">처리일</th>
+                    <th style="min-width: 150px;">계좌번호</th>
+                    <th style="min-width: 80px;">예금주</th>
+                    <th style="min-width: 80px;">주민번호</th>
+                    <th style="min-width: 100px;">요청일</th>
+                    <th style="min-width: 100px;">처리일</th>
                     <th style="min-width: 100px;">상태</th>                    
                     <th style="min-width: 100px;">액션</th>
                     <th style="min-width: 150px;">메모</th>
@@ -116,6 +117,7 @@ include 'admin_header.php';
                     <td><?php echo htmlspecialchars($withdrawal['bank_name']); ?></td>
                     <td><?php echo htmlspecialchars($withdrawal['account_number']); ?></td>
                     <td><?php echo htmlspecialchars($withdrawal['account_holder']); ?></td>
+                    <td><?php echo htmlspecialchars($withdrawal['jumin']); ?></td>
                     <td><?php echo $withdrawal['request_date']; ?></td>
                     <td><?php echo $withdrawal['processed_date']; ?></td>
                     <td>

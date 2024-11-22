@@ -81,7 +81,7 @@
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_commissions.php">수수료 관리</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/commission_calculate.php">수수료정산</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_withdrawals.php">출금신청처리</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="/organization">추천조직도</a></li>
+                                        <li class="nav-item"><a class="nav-link" href="/org_chart">추천조직도</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_settings.php">설정</a></li>
                 </ul>
             </div>
