@@ -754,3 +754,65 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['execute']) && $_POST[
     <?php
 }
 ?>
+
+
+
+
+--------------------------------
+
+최대한 간단히 구현하고자 한다면.. 최소의 수정으로..
+1.order_apply.php에서  캐시포인트(cash_point_used)와 마일리지포인트(mileage_point_used)를  연동안되게 구분한다. 하단 [1]참조
+2.order_process.php에서 포인트 종류에 따라 호출을 달리하면 될듯한데..
+
+(현재코드)
+현재는 calculateAndProcessCommissions 함수를 건너뛰고, 바로   processNFTAndRank($conn, $order_id); 만 호출하고 있다.
+
+(수정방향)
+1)마일리지포인트 결제시 :  processNFTAndRank($conn, $order_id); 만 호출
+2)캐시포인트결제시:  calculateAndProcessCommissions 호출후--> 수당계산, 직급계산 등 정상프로세스
+
+(현재 order_process.php 에서 처리하는 함수)
+수수료계산함수  :  calculateAndProcessCommissions 함수
+직급만 계산하는 함수 :  updateUserRank($conn, $_SESSION['user_id']
+nft지급과 직급계산함수 : processNFTAndRank($conn, $order_id); 
+
+// 포인트 결제의 경우 수수료 계산 및 직급 업데이트
+
+        if ($paymentMethod === 'point') {
+            try {
+               // calculateAndProcessCommissions($conn, $order_id);  수수료계산 제외
+                //updateUserRank($conn, $_SESSION['user_id']);
+                processNFTAndRank($conn, $order_id);  // 포인트 결제시 수수료 제외, NFT 토큰 및 직급 업데이트
+            } catch (Exception $e) {
+                error_log('수수료 계산 및 직급 업데이트 오류: ' . $e->getMessage());
+            }
+        }
+
+
+[1] order_apply.php 에서 캐시포인트와 마일리지포인트를 합하여 포인트결제 하던것을  캐시포인트와 마일리지 포인트중 한곳으로만 주문할수 있도록 구분한다
+
+                <div class="form-group mt10">
+                    <label for="useMileagePoint">마일리지(MP) 사용</label>
+                    <div style="display: flex; align-items: center;">
+                        <input type="number" id="useMileagePoint" name="useMileagePoint" value="0" min="0"
+                            max="<?php echo $user_mileage; ?>" style="width: 120px; color:white;" class="form-control">
+                        <span style="margin-left: 10px;font-size:12px;"><br>마일리지잔고 <span
+                                style="color: white;"><?php echo number_format($user_mileage); ?></span>원</span>
+                    </div>
+                </div>
+                <hr>
+                <p class="text-blue3 rem-11">포인트결제 합계: <span id="totalPointAmount">0원</span></p>
+                <p id="pointErrorMessage" style="color: red; display: none;"></p>
+
+                    <button class="btn-gold" id="point-order-button" style="margin-top: 15px;">
+                        <i class="fas fa-shopping-cart"></i> 구매 신청하기
+                    </button>
+
+[2]포인트결제 구분후, point_type = 캐시포인트(cash_point)또는 마일리지포인트(mileage_point)로 임시로 저장하여 order_process.php 로 넘어갈때까지만 구분해서 넘기고..
+order_process.php 에서 처리하는 함수에서 구분해서 처리한다.
+
+1)즉 $point_type = "mileage_point" 는 마일리지포인트 결제시 :  processNFTAndRank($conn, $order_id); 만 호출
+2)즉 $point_type = "cash_point" 는 캐시포인트결제시:  calculateAndProcessCommissions 호출후--> 수당계산, 직급계산 등 정상프로세스
+
+이런식으로만 처리하고 이후의 프로세스는 기존과 동일하게 commissions테이블에 저장되게 한다.
+오류 가능성을 줄이기 위해 최대한 기능만 잘 구현되게 하라.

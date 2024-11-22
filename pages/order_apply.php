@@ -407,240 +407,258 @@ include 'includes/header.php';
         }
     });
     </script>
+
     <?php endif; ?>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
-    <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        // 수량 변경 이벤트
-        const decreaseQuantity = document.getElementById('decrease-quantity');
-        const increaseQuantity = document.getElementById('increase-quantity');
-        const quantityInput = document.getElementById('quantity');
-        const totalAmount = document.getElementById('total-amount');
-        const depositAmount = document.getElementById('deposit-amount');
-        const paypalAmount = document.getElementById('paypal-amount');
 
-        // 포인트 결제 관련 변수
-        const pointTab = document.getElementById('pointTab');
-        const pointInfo = document.getElementById('pointInfo');
-        const useCashPoint = document.getElementById('useCashPoint');
-        const useMileagePoint = document.getElementById('useMileagePoint');
 
-        const pointPayAmount = document.getElementById('pointPayAmount');
-        const totalPointAmount = document.getElementById('totalPointAmount');
-        const pointErrorMessage = document.getElementById('pointErrorMessage');
+<script src="https://cdnjs.cloudflare.com/ajax/libs/clipboard.js/2.0.8/clipboard.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // 기존 변수 선언 유지
+    const decreaseQuantity = document.getElementById('decrease-quantity');
+    const increaseQuantity = document.getElementById('increase-quantity');
+    const quantityInput = document.getElementById('quantity');
+    const totalAmount = document.getElementById('total-amount');
+    const depositAmount = document.getElementById('deposit-amount');
+    const paypalAmount = document.getElementById('paypal-amount');
+    const bankTab = document.getElementById('bankTab');
+    const pointTab = document.getElementById('pointTab');
+    const paypalTab = document.getElementById('paypalTab');
+    const bankTransferInfo = document.getElementById('bankTransferInfo');
+    const pointInfo = document.getElementById('pointInfo');
+    const paypalInfo = document.getElementById('paypalInfo');
+    const useCashPoint = document.getElementById('useCashPoint');
+    const useMileagePoint = document.getElementById('useMileagePoint');
+    const pointPayAmount = document.getElementById('pointPayAmount');
+    const totalPointAmount = document.getElementById('totalPointAmount');
+    const pointErrorMessage = document.getElementById('pointErrorMessage');
 
-        function updateTotal() {
-            let quantity = parseInt(quantityInput.value);
-            let amount = quantity * <?php echo $price; ?>;
-            totalAmount.textContent = amount.toLocaleString() + '원';
-            depositAmount.textContent = amount.toLocaleString() + '원';
-            paypalAmount.textContent = amount.toLocaleString() + '원';
-            pointPayAmount.textContent = amount.toLocaleString() + '원';
-            updatePointTotal();
+    // 수량 관련 함수 유지
+    function updateTotal() {
+        let quantity = parseInt(quantityInput.value);
+        let amount = quantity * <?php echo $price; ?>;
+        totalAmount.textContent = amount.toLocaleString() + '원';
+        depositAmount.textContent = amount.toLocaleString() + '원';
+        paypalAmount.textContent = amount.toLocaleString() + '원';
+        pointPayAmount.textContent = amount.toLocaleString() + '원';
+        
+        // 포인트 입력값 초기화 및 재계산
+        useCashPoint.value = '0';
+        useMileagePoint.value = '0';
+        updatePointTotal();
+    }
+
+    // 수량 버튼 이벤트 리스너 유지
+    decreaseQuantity.addEventListener('click', function() {
+        let quantity = parseInt(quantityInput.value);
+        if (quantity > 1) {
+            quantityInput.value = --quantity;
+            updateTotal();
         }
+    });
 
-        decreaseQuantity.addEventListener('click', function() {
-            let quantity = parseInt(quantityInput.value);
-            if (quantity > 1) {
-                quantityInput.value = --quantity;
-                updateTotal();
-            }
-        });
+    increaseQuantity.addEventListener('click', function() {
+        let quantity = parseInt(quantityInput.value);
+        quantityInput.value = ++quantity;
+        updateTotal();
+    });
 
-        increaseQuantity.addEventListener('click', function() {
-            let quantity = parseInt(quantityInput.value);
-            quantityInput.value = ++quantity;
-            updateTotal();
-        });
+    quantityInput.addEventListener('change', function() {
+        updateTotal();
+    });
 
-        quantityInput.addEventListener('change', function() {
-            updateTotal();
-        });
+    // 탭 전환 이벤트 유지
+    bankTab.addEventListener('click', function() {
+        bankTab.classList.add('active');
+        pointTab.classList.remove('active');
+        if (paypalTab) paypalTab.classList.remove('active');
+        bankTransferInfo.style.display = 'block';
+        pointInfo.style.display = 'none';
+        paypalInfo.style.display = 'none';
+    });
 
-        // 결제 방식 탭 클릭 이벤트
-        const bankTab = document.getElementById('bankTab');
-        const paypalTab = document.getElementById('paypalTab');
-        const bankTransferInfo = document.getElementById('bankTransferInfo');
-        const paypalInfo = document.getElementById('paypalInfo');
+    pointTab.addEventListener('click', function() {
+        pointTab.classList.add('active');
+        bankTab.classList.remove('active');
+        if (paypalTab) paypalTab.classList.remove('active');
+        pointInfo.style.display = 'block';
+        bankTransferInfo.style.display = 'none';
+        paypalInfo.style.display = 'none';
+        updatePointTotal();
+    });
 
-        bankTab.addEventListener('click', function() {
-            bankTab.classList.add('active');
-            pointTab.classList.remove('active');
-            if (paypalTab) paypalTab.classList.remove('active');
-            bankTransferInfo.style.display = 'block';
-            pointInfo.style.display = 'none';
-            paypalInfo.style.display = 'none';
-        });
-
-        // 포인트 결제 탭 클릭 이벤트
-        pointTab.addEventListener('click', function() {
-            pointTab.classList.add('active');
+    if (paypalTab) {
+        paypalTab.addEventListener('click', function() {
+            paypalTab.classList.add('active');
             bankTab.classList.remove('active');
-            if (paypalTab) paypalTab.classList.remove('active');
-            pointInfo.style.display = 'block';
+            pointTab.classList.remove('active');
+            paypalInfo.style.display = 'block';
             bankTransferInfo.style.display = 'none';
-            paypalInfo.style.display = 'none';
-            updatePointTotal();
+            pointInfo.style.display = 'none';
         });
+    }
 
-        // 간편결제 탭 클릭 이벤트는 그대로 둡니다
-        if (paypalTab) {
-            paypalTab.addEventListener('click', function() {
-                paypalTab.classList.add('active');
-                bankTab.classList.remove('active');
-                pointTab.classList.remove('active');
-                paypalInfo.style.display = 'block';
-                bankTransferInfo.style.display = 'none';
-                pointInfo.style.display = 'none';
-            });
-        }
-
-
-       
- 
-    // 캐시 포인트 입력 시
+    // 포인트 입력 처리 - 수정된 부분
     useCashPoint.addEventListener('input', function() {
-        if (this.value > 0) {
-            useMileagePoint.value = 0;
+        if (this.value === '') {
+            this.value = '0';
+        }
+        
+        let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
+        let maxCashPoints = <?php echo $user_cash_points; ?>;
+        let cashPoint = Math.min(parseInt(this.value) || 0, maxCashPoints, totalPrice);
+        
+        this.value = cashPoint;
+        
+        if (cashPoint > 0) {
+            useMileagePoint.value = '0';
             useMileagePoint.disabled = true;
         } else {
             useMileagePoint.disabled = false;
         }
+        
         updatePointTotal();
     });
 
-    // 마일리지 포인트 입력 시
     useMileagePoint.addEventListener('input', function() {
-        if (this.value > 0) {
-            useCashPoint.value = 0;
+        if (this.value === '') {
+            this.value = '0';
+        }
+        
+        let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
+        let maxMileagePoints = <?php echo $user_mileage; ?>;
+        let mileagePoint = Math.min(parseInt(this.value) || 0, maxMileagePoints, totalPrice);
+        
+        this.value = mileagePoint;
+        
+        if (mileagePoint > 0) {
+            useCashPoint.value = '0';
             useCashPoint.disabled = true;
         } else {
             useCashPoint.disabled = false;
         }
+        
         updatePointTotal();
     });
 
-    // 포인트 합계 계산 함수 수정
+    // 포인트 합계 계산 함수 - 수정된 부분
     function updatePointTotal() {
         let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
         let cashPoint = parseInt(useCashPoint.value) || 0;
         let mileagePoint = parseInt(useMileagePoint.value) || 0;
-        let totalPoint = cashPoint + mileagePoint;
+        let isValid = true;
         
-        document.getElementById('totalPointAmount').textContent = totalPoint.toLocaleString() + '원';
-        
-        // 결제 금액과 일치하는지 검증
-        if (totalPoint !== totalPrice) {
-            document.getElementById('pointErrorMessage').textContent = 
-                '포인트 결제 금액이 결제 금액과 일치하지 않습니다.';
-            document.getElementById('pointErrorMessage').style.display = 'block';
+        if (cashPoint > 0 && mileagePoint > 0) {
+            pointErrorMessage.textContent = '캐시포인트와 마일리지포인트 중 하나만 선택하여 결제가 가능합니다.';
+            pointErrorMessage.style.display = 'block';
+            isValid = false;
         } else {
-            document.getElementById('pointErrorMessage').textContent = '';
-            document.getElementById('pointErrorMessage').style.display = 'none';
+            let selectedPoint = cashPoint + mileagePoint;
+            totalPointAmount.textContent = selectedPoint.toLocaleString() + '원';
+
+            if (selectedPoint === 0) {
+                pointErrorMessage.textContent = '사용할 포인트를 입력해주세요.';
+                pointErrorMessage.style.display = 'block';
+                isValid = false;
+            } else if (selectedPoint !== totalPrice) {
+                pointErrorMessage.textContent = '포인트 결제 금액이 결제할 금액과 일치하지 않습니다.';
+                pointErrorMessage.style.display = 'block';
+                isValid = false;
+            } else {
+                pointErrorMessage.style.display = 'none';
+            }
         }
+        
+        return isValid;
     }
 
+    // 주문 처리 함수 - 수정된 부분
+    function processOrder(paymentMethod) {
+        const quantity = parseInt(quantityInput.value);
+        const productId = <?php echo $productId; ?>;
+        let isValid = true;
 
-        // 초기 포인트 합계 계산
-        updatePointTotal();
-
-        // 주문하기 버튼 클릭 이벤트
-        const bankOrderButton = document.getElementById('bank-order-button');
-        const pointOrderButton = document.getElementById('point-order-button');
-
-        bankOrderButton.addEventListener('click', function() {
-            processOrder('bank');
-        });
-
-        pointOrderButton.addEventListener('click', function() {
-            processOrder('point');
-        });
-
-        function processOrder(paymentMethod) {
-            const quantity = quantityInput.value;
-            const productId = <?php echo $productId; ?>;
-            let isValid = true;
-
-            const orderData = {
-                quantity: parseInt(quantity),
-                price: <?php echo $price; ?>,
-                paymentMethod: paymentMethod,
-                productId: productId
-            };
-
-            if (paymentMethod === 'bank') {
-                const depositorName = document.getElementById('depositorName');
-                if (!depositorName.value.trim()) {
-                    document.getElementById('depositorNameError').textContent = '입금자명을 입력해주세요.';
-                    isValid = false;
-                } else {
-                    document.getElementById('depositorNameError').textContent = '';
-                    orderData.depositorName = depositorName.value;
-                }
-            } else if (paymentMethod === 'point') {
-                const useCashPoint = parseFloat(document.getElementById('useCashPoint').value) || 0;
-                const useMileagePoint = parseFloat(document.getElementById('useMileagePoint').value) || 0;
-                
-                if (useCashPoint + useMileagePoint === 0) {
-                    alert('사용할 포인트를 입력해주세요.');
-                    isValid = false;
-                } else {
-                    orderData.useCashPoint = useCashPoint;
-                    orderData.useMileagePoint = useMileagePoint;
-                }
-            }
-
-            if (isValid) {
-                // 로딩 오버레이 표시
-                document.getElementById('loadingOverlay').style.display = 'block';
-
-                fetch('/order_process', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    credentials: 'include',
-                    body: JSON.stringify(orderData)
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('서버 응답 오류: ' + response.status);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    // 로딩 오버레이 숨기기
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    if (data.success) {
-                        window.location.href = '/order_complete?order_id=' + data.order_id;
-                    } else {
-                        alert('주문 처리 중 오류가 발생했습니다: ' + (data.message || '알 수 없는 오류'));
-                        console.error('주문 처리 중 오류:', data);
-                    }
-                })
-                .catch((error) => {
-                    // 로딩 오버레이 숨기기
-                    document.getElementById('loadingOverlay').style.display = 'none';
-                    console.error('Error:', error);
-                    alert('주문 처리 중 예기치 않은 오류가 발생했습니다: ' + error.message);
-                });
-            }
+        if (quantity < 1) {
+            alert('구매 수량을 입력해주세요.');
+            return;
         }
 
-        var clipboard = new ClipboardJS('.copy-btn');
-        clipboard.on('success', function(e) {
-            e.trigger.textContent = '복사됨!';
-            setTimeout(function() {
-                e.trigger.textContent = '복사';
-            }, 2000);
-            e.clearSelection();
-        });
-        clipboard.on('error', function(e) {
-            console.error('복사 실패:', e.action);
-        });
+        const orderData = {
+            quantity: quantity,
+            price: <?php echo $price; ?>,
+            paymentMethod: paymentMethod,
+            productId: productId
+        };
 
-        // 초기 가격 계산
-        updateTotal();
+        if (paymentMethod === 'bank') {
+            const depositorName = document.getElementById('depositorName').value.trim();
+            if (!depositorName) {
+                document.getElementById('depositorNameError').textContent = '입금자명을 입력해주세요.';
+                return;
+            }
+            orderData.depositorName = depositorName;
+        } else if (paymentMethod === 'point') {
+            if (!updatePointTotal()) {
+                return;
+            }
+            
+            orderData.useCashPoint = parseFloat(useCashPoint.value) || 0;
+            orderData.useMileagePoint = parseFloat(useMileagePoint.value) || 0;
+        }
+
+        // 로딩 표시
+        document.getElementById('loadingOverlay').style.display = 'block';
+
+        // API 호출
+        fetch('/order_process', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include',
+            body: JSON.stringify(orderData)
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('서버 응답 오류: ' + response.status);
+            }
+            return response.json();
+        })
+        .then(data => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            if (data.success) {
+                window.location.href = '/order_complete?order_id=' + data.order_id;
+            } else {
+                alert(data.message || '주문 처리 중 오류가 발생했습니다.');
+            }
+        })
+        .catch(error => {
+            document.getElementById('loadingOverlay').style.display = 'none';
+            console.error('Error:', error);
+            alert('주문 처리 중 오류가 발생했습니다: ' + error.message);
+        });
+    }
+
+    // 주문 버튼 이벤트 리스너
+    document.getElementById('bank-order-button').addEventListener('click', () => processOrder('bank'));
+    document.getElementById('point-order-button').addEventListener('click', () => processOrder('point'));
+
+    // 클립보드 기능
+    const clipboard = new ClipboardJS('.copy-btn');
+    clipboard.on('success', function(e) {
+        e.trigger.textContent = '복사됨!';
+        setTimeout(() => e.trigger.textContent = '복사', 2000);
+        e.clearSelection();
     });
-    </script>
-    <?php include 'includes/footer.php'; ?>
+    
+    clipboard.on('error', function(e) {
+        console.error('복사 실패:', e.action);
+    });
+
+    // 초기화
+    updateTotal();
+});
+</script>
+
+
+  <?php include 'includes/footer.php'; ?>

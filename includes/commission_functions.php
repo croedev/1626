@@ -489,7 +489,7 @@ function calculateAndProcessCommissions($conn, $order_id) {
         $user_id = $order['user_id'];
         $orderAmount = $order['total_amount'];
         $order_date = $order['created_at'];
-    $quantity = $order['quantity'];
+       $quantity = $order['quantity'];
 
 
         // 주문이 이미 수수료 처리가 완료되었는지 확인
