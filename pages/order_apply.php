@@ -320,9 +320,10 @@ include 'includes/header.php';
 
             <!-- 포인트 결제 탭 수정 -->
             <div id="pointInfo" class="p20 border-1 mt0" style="background-color:#101; display: none;">
-                <p class="text-orange rem-12">결제할 금액: <span
+                <p class="rem-12">결제할 금액: <span class="text-warning"
                         id="pointPayAmount"><?php echo number_format($price); ?>원</span></p>
                 <hr>
+                <p class="rem-08 notosans text-green5">*포인트는 동시에 한가지 종류로만 결제할 수 있습니다.</p>
                 <div class="form-group">
                     <label for="useCashPoint">현금포인트(CP) 사용</label>
                     <div style="display: flex; align-items: center;">
@@ -330,16 +331,16 @@ include 'includes/header.php';
                             max="<?php echo $user_cash_points; ?>" style="width: 120px; color:white;"
                             class="form-control">
                         <span style="margin-left: 10px; font-size:12px;"><br>현금잔고 <span
-                                style="color: white;"><?php echo number_format($user_cash_points); ?></span>원</span>
+                                style="color: orange;"><?php echo number_format($user_cash_points); ?></span>원</span>
                     </div>
                 </div>
                 <div class="form-group mt10">
                     <label for="useMileagePoint">마일리지(MP) 사용</label>
                     <div style="display: flex; align-items: center;">
                         <input type="number" id="useMileagePoint" name="useMileagePoint" value="0" min="0"
-                            max="<?php echo $user_mileage; ?>" style="width: 120px; color:white;" class="form-control">
-                        <span style="margin-left: 10px;font-size:12px;"><br>마일리지잔고 <span
-                                style="color: white;"><?php echo number_format($user_mileage); ?></span>원</span>
+                            max="<?php echo $user_mileage; ?>" style="width: 120px; color:orange;" class="form-control">
+                        <span style="margin-left: 12px;font-size:12px;"><br>마일리지잔고 <span
+                                style="color: orange;"><?php echo number_format($user_mileage); ?></span>원</span>
                     </div>
                 </div>
                 <hr>
@@ -423,6 +424,7 @@ include 'includes/header.php';
         const pointInfo = document.getElementById('pointInfo');
         const useCashPoint = document.getElementById('useCashPoint');
         const useMileagePoint = document.getElementById('useMileagePoint');
+
         const pointPayAmount = document.getElementById('pointPayAmount');
         const totalPointAmount = document.getElementById('totalPointAmount');
         const pointErrorMessage = document.getElementById('pointErrorMessage');
@@ -493,57 +495,51 @@ include 'includes/header.php';
             });
         }
 
-        // 캐시 포인트 입력 이벤트
-        useCashPoint.addEventListener('input', function() {
-            let cashPoint = parseInt(this.value) || 0;
-            let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
 
-            if (cashPoint > <?php echo $user_cash_points; ?>) {
-                cashPoint = <?php echo $user_cash_points; ?>;
-            } else if (cashPoint > totalPrice) {
-                cashPoint = totalPrice;
-            }
-
-            let remainingAmount = totalPrice - cashPoint;
-            useMileagePoint.value = Math.min(remainingAmount, <?php echo $user_mileage; ?>);
-
-            this.value = cashPoint;
-            updatePointTotal();
-        });
-
-        // 마일리지 포인트 입력 이벤트
-        useMileagePoint.addEventListener('input', function() {
-            let mileagePoint = parseInt(this.value) || 0;
-            let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
-            let cashPoint = parseInt(useCashPoint.value) || 0;
-
-            if (mileagePoint > totalPrice - cashPoint) {
-                mileagePoint = totalPrice - cashPoint;
-            } else if (mileagePoint > <?php echo $user_mileage; ?>) {
-                mileagePoint = <?php echo $user_mileage; ?>;
-            }
-
-            this.value = mileagePoint;
-            updatePointTotal();
-        });
-
-        // 포인트 합계 계산
-        function updatePointTotal() {
-            let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
-            let cashPoint = parseInt(useCashPoint.value) || 0;
-            let mileagePoint = parseInt(useMileagePoint.value) || 0;
-            let totalPoint = cashPoint + mileagePoint;
-
-            document.getElementById('totalPointAmount').textContent = totalPoint.toLocaleString() + '원';
-
-            if (totalPoint !== totalPrice) {
-                document.getElementById('pointErrorMessage').textContent = '포인트 결제 합계가 결제 금액과 일치하지 않습니다.';
-                document.getElementById('pointErrorMessage').style.display = 'block';
-            } else {
-                document.getElementById('pointErrorMessage').textContent = '';
-                document.getElementById('pointErrorMessage').style.display = 'none';
-            }
+       
+ 
+    // 캐시 포인트 입력 시
+    useCashPoint.addEventListener('input', function() {
+        if (this.value > 0) {
+            useMileagePoint.value = 0;
+            useMileagePoint.disabled = true;
+        } else {
+            useMileagePoint.disabled = false;
         }
+        updatePointTotal();
+    });
+
+    // 마일리지 포인트 입력 시
+    useMileagePoint.addEventListener('input', function() {
+        if (this.value > 0) {
+            useCashPoint.value = 0;
+            useCashPoint.disabled = true;
+        } else {
+            useCashPoint.disabled = false;
+        }
+        updatePointTotal();
+    });
+
+    // 포인트 합계 계산 함수 수정
+    function updatePointTotal() {
+        let totalPrice = <?php echo $price; ?> * parseInt(quantityInput.value);
+        let cashPoint = parseInt(useCashPoint.value) || 0;
+        let mileagePoint = parseInt(useMileagePoint.value) || 0;
+        let totalPoint = cashPoint + mileagePoint;
+        
+        document.getElementById('totalPointAmount').textContent = totalPoint.toLocaleString() + '원';
+        
+        // 결제 금액과 일치하는지 검증
+        if (totalPoint !== totalPrice) {
+            document.getElementById('pointErrorMessage').textContent = 
+                '포인트 결제 금액이 결제 금액과 일치하지 않습니다.';
+            document.getElementById('pointErrorMessage').style.display = 'block';
+        } else {
+            document.getElementById('pointErrorMessage').textContent = '';
+            document.getElementById('pointErrorMessage').style.display = 'none';
+        }
+    }
+
 
         // 초기 포인트 합계 계산
         updatePointTotal();

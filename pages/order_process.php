@@ -115,10 +115,14 @@ if ($input) {
         }
         $order_id = $conn->insert_id;
 
+
+
+
+/*
         // 포인트 결제의 경우 수수료 계산 및 직급 업데이트
         if ($paymentMethod === 'point') {
             try {
-               // calculateAndProcessCommissions($conn, $order_id);
+               // calculateAndProcessCommissions($conn, $order_id);  수수료계산 제외
                 //updateUserRank($conn, $_SESSION['user_id']);
                 processNFTAndRank($conn, $order_id);  // 포인트 결제시 수수료 제외, NFT 토큰 및 직급 업데이트
 
@@ -126,6 +130,55 @@ if ($input) {
                 error_log('수수료 계산 및 직급 업데이트 오류: ' . $e->getMessage());
             }
         }
+
+*/
+
+
+if ($paymentMethod === 'point') {
+    $status = 'completed';
+    $paymentDate = date('Y-m-d H:i:s');
+    $nft_token = $quantity;
+
+    // 사용자 정보 및 포인트 검증
+    $stmt = $conn->prepare("SELECT name, cash_points, mileage_points FROM users WHERE id = ?");
+    $stmt->bind_param("i", $_SESSION['user_id']);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $user = $result->fetch_assoc();
+    $depositorName = $user['name'];
+
+    // 포인트 타입 결정
+    $point_type = $useCashPoint > 0 ? 'cash_point' : 'mileage_point';
+
+    // 포인트 차감
+    if ($point_type === 'cash_point') {
+        if ($useCashPoint > floatval($user['cash_points'])) {
+            throw new Exception('사용 가능한 캐시 포인트를 초과했습니다.');
+        }
+        $stmt = $conn->prepare("UPDATE users SET cash_points = cash_points - ? WHERE id = ?");
+        $stmt->bind_param("di", $useCashPoint, $_SESSION['user_id']);
+    } else {
+        if ($useMileagePoint > floatval($user['mileage_points'])) {
+            throw new Exception('사용 가능한 마일리지 포인트를 초과했습니다.');
+        }
+        $stmt = $conn->prepare("UPDATE users SET mileage_points = mileage_points - ? WHERE id = ?");
+        $stmt->bind_param("di", $useMileagePoint, $_SESSION['user_id']);
+    }
+    $stmt->execute();
+
+    // 주문 생성 후 포인트 타입에 따른 처리
+    if ($point_type === 'cash_point') {
+        // 캐시 포인트 결제: 수수료 계산 및 직급 업데이트
+        calculateAndProcessCommissions($conn, $order_id);
+    } else {
+        // 마일리지 포인트 결제: NFT 토큰 및 직급만 업데이트
+        processNFTAndRank($conn, $order_id);
+    }
+}
+
+
+
+
 
         $conn->commit();
 

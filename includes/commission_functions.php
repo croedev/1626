@@ -479,16 +479,17 @@ function calculateAndProcessCommissions($conn, $order_id) {
             throw new Exception("유효하지 않은 주문입니다.");
         }
 
-        // 포인트 결제는 수수료 계산 제외
-        if ($order['payment_method'] === 'point') {
+        // 포인트 결제중 마일리지포인트는 수수료 계산 제외
+        if ($order['payment_method'] === 'point' && $order['mileage_point_used'] > 0) {
             $conn->commit();
             return;
         }
 
+
         $user_id = $order['user_id'];
         $orderAmount = $order['total_amount'];
         $order_date = $order['created_at'];
-
+    $quantity = $order['quantity'];
 
 
         // 주문이 이미 수수료 처리가 완료되었는지 확인

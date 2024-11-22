@@ -49,28 +49,32 @@ CREATE TABLE `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
   `product_id` int(11) NOT NULL,
-  `quantity` int(11) NOT NULL,
+  `price_unit` decimal(10,0) DEFAULT NULL COMMENT '단위가격',
+  `quantity` int(11) NOT NULL COMMENT '수량',
+  `nft_token` int(11) DEFAULT 0 COMMENT '지급된 NFT 수량',
   `total_amount` decimal(10,2) NOT NULL,
-  `currency` char(3) DEFAULT 'KRW',
-  `status` enum('pending','paid','completed','cancelled') DEFAULT 'pending',
-  `payment_method` enum('bank','paypal') DEFAULT NULL,
+  `payment_method` varchar(100) DEFAULT NULL,
   `depositor_name` varchar(100) DEFAULT NULL,
-  `expected_deposit_date` date DEFAULT NULL,
+  `cash_point_used` decimal(10,2) DEFAULT 0.00,
+  `mileage_point_used` decimal(10,2) DEFAULT 0.00,
   `payment_date` datetime DEFAULT NULL,
-  `paypal_transaction_id` varchar(255) DEFAULT NULL,
-  `ip_address` varchar(45) DEFAULT NULL,
-  `created_at` timestamp NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `status` enum('pending','paid','completed','cancelled') DEFAULT 'pending',
+  `paid_status` enum('pending','completed') DEFAULT 'pending',
+  `currency` char(3) DEFAULT 'KRW',
   `vat_amount` decimal(10,2) DEFAULT 0.00,
+  `ip_address` varchar(45) DEFAULT NULL,
   `certificate_number` varchar(100) DEFAULT NULL,
-  `discount_applied` decimal(10,2) DEFAULT 0.00,
-  `order_type` enum('regular','mileage') DEFAULT 'regular',
+  `order_type` varchar(256) DEFAULT 'regular',
+  `updated_at` timestamp NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_at` timestamp NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `product_id` (`product_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=15 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=5830 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+
 
 
 기능 설명
@@ -87,16 +91,26 @@ order_type: 주문이 현금 결제인지 마일리지 결제인지를 구분합
 CREATE TABLE `commissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
+  `commission_type` enum('direct_sales','distributor','special','total_distributor','special_distributor') NOT NULL COMMENT '수수료 유형',
   `amount` decimal(10,2) NOT NULL,
-  `commission_type` enum('direct','indirect','override') NOT NULL,
+  `cash_point_amount` decimal(10,2) DEFAULT 0.00 COMMENT '캐시포인트로 지급된 금액',
+  `mileage_point_amount` decimal(10,2) DEFAULT 0.00 COMMENT '마일리지포인트로 지급된 금액',
+  `commission_rate` decimal(5,2) DEFAULT 0.00 COMMENT '적용된 수수료 비율',
+  `order_id` int(11) NOT NULL COMMENT '주문 ID',
+  `minus_from` int(10) DEFAULT NULL COMMENT '삭제된수당건',
   `source_user_id` int(11) NOT NULL,
+  `source_amount` decimal(11,2) DEFAULT NULL COMMENT '발생매출',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`),
   KEY `user_id` (`user_id`),
   KEY `source_user_id` (`source_user_id`),
+  KEY `order_id` (`order_id`),
+  KEY `idx_commission_type` (`commission_type`),
   CONSTRAINT `commissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
-  CONSTRAINT `commissions_ibfk_2` FOREIGN KEY (`source_user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+  CONSTRAINT `commissions_ibfk_2` FOREIGN KEY (`source_user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `commissions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=38428 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
 
 
 
