@@ -209,7 +209,7 @@ include __DIR__ . '/../includes/header.php';
                     <a href="/org_tree" class="btn btn-sm <?php echo ($_SERVER['REQUEST_URI'] == '/org_tree') ? 'btn-primary' : 'btn-secondary'; ?> ml-2">
                 <i class="fas fa-sitemap"></i> 트리형 조직도보기
             </a>
-            <a href="/organization" class="btn btn-sm <?php echo ($_SERVER['REQUEST_URI'] == '/org_chart') ? 'btn-primary' : 'btn-secondary'; ?> ml-2">
+            <a href="/org_chart" class="btn btn-sm <?php echo ($_SERVER['REQUEST_URI'] == '/org_chart') ? 'btn-primary' : 'btn-secondary'; ?> ml-2">
                 <i class="fas fa-th-large"></i> 박스형 조직도보기
             </a>
 

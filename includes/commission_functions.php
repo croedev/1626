@@ -70,7 +70,7 @@ function getRankName($rank) {
         '특판' => '특판',
         '특판A' => '특판A'
     ];
-    return $rank_names[$rank] ?? '알 수 음';
+    return $rank_names[$rank] ?? '알수없음';
 }
 
 /**
@@ -99,13 +99,19 @@ function updateUserRank($conn, $user_id, $order_date = null) {
             $new_rank = '총판';
         }
 
-        // 특판 승급 조건 확인
-        if ($user['myAgent'] >= 10 && ($current_rank == '총판' || $new_rank == '총판')) {
+        // 특판 승급 조건 확인(구조건)
+        // if ($user['myAgent'] >= 10 && ($current_rank == '총판' || $new_rank == '총판')) {
+        //     $new_rank = '특판';
+        // }
+
+         // 특판 승급 조건 확인 (신규조건)
+         if ($user['myAgent_referral'] >= 10 && ($current_rank == '총판' || $new_rank == '총판')) {
             $new_rank = '특판';
         }
 
+
         // 특판A 승급 조건 확인
-        if ($user['myAgent_referral'] >= 5 && $new_rank == '특판') {
+        if ($user['myAgent_referral'] >= 15 && $new_rank == '특판') {
             $new_rank = '특판A';
         }
 
