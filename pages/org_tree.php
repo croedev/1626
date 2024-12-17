@@ -52,7 +52,7 @@ if (empty($organizationData)) {
             'direct_referrals_count' => $user['direct_referrals_count'] ?? 0,
             'total_referrals_count' => $user['total_referrals_count'] ?? 0,
             'referred_by' => null,
-            'depth' => 1
+            'depth' => 1            
         ]
     ];
 }
@@ -258,7 +258,8 @@ document.addEventListener('DOMContentLoaded', function() {
             var myAgent_referral = numberWithCommas(memberData.myAgent_referral || 0);
 
             var content = "<h4 class='mb-3'>" + htmlspecialchars(memberData.name) +
-                          " (ID: " + memberData.id + ", " + htmlspecialchars(memberData.phone) + ")</h4>" +
+                          //" (ID: " + memberData.id + ", " + htmlspecialchars(memberData.phone) + ")</h4>" +
+                            " (ID: " + memberData.id + ")</h4>" +
                           "<p class='mb-1'>• 직급: <strong>" +
                           htmlspecialchars(memberData.rank) + "</strong></p>" +
                     

@@ -19,6 +19,10 @@
             <i class="fas fa-coins"></i>
             <span>NFT</span>
         </a>
+          <a href="/summary" class="nav-item" data-page="notice">
+            <i class="fas fa-newspaper"></i>
+            <span>뉴스</span>
+        </a>
         <a href="javascript:void(0);" onclick="shareKakao()" class="nav-item" data-page="share">
             <i class="fas fa-share-alt"></i>
             <span>공유</span>

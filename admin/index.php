@@ -10,7 +10,11 @@ require_once __DIR__ . '/admin_functions.php';
 require_once __DIR__ . '/../includes/commission_functions.php';
 
 
+
+
+
 $conn = db_connect();
+
 
 // 에러 핸들링을 위한 함수
 function handleDatabaseError($conn, $query) {

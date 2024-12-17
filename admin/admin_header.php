@@ -81,8 +81,10 @@
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_commissions.php">수수료 관리</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/commission_calculate.php">수수료정산</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_withdrawals.php">출금신청처리</a></li>
-                                        <li class="nav-item"><a class="nav-link" href="/org_chart">추천조직도</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/admin/admin_settings.php">설정</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/org_chart">추천조직도</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin/admin_notice.php">공지사항</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin/admin_prize_apply.php">경품응모</a></li>
+                       <li class="nav-item"><a class="nav-link" href="/admin/admin_nft.php">NFT조회</a></li>
                 </ul>
             </div>
         </div>
