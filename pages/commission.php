@@ -77,7 +77,7 @@ try {
     }, $commission_stats);
 
     // 로그 추가
-    error_log("사용자 $user_id의 수수료 통계: " . print_r($commission_stats, true));
+    // error_log("사용자 $user_id의 수수료 통계: " . print_r($commission_stats, true));
 
 } catch (Exception $e) {
     error_log("수수료 통계 조회 실패: " . $e->getMessage());

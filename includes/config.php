@@ -23,6 +23,39 @@ define('SITE_URL', 'https://1626.lidyahk.com');
 define('KAKAO_API_KEY', 'c9e708d6ad0e4ead5dc265350b6d4d89');
 
 
+// BSC 설정
+define('BSC_RPC_URL', 'https://bsc-dataseed1.binance.org');
+define('BSC_CHAIN_ID', '56');
+
+// SERE 토큰 관련 설정
+define('SERE_CONTRACT', '0xdA3DB1B44ddc2A7e8d28083ab0FeEDa7f5182D66');
+
+// BSCScan API 키 (트랜잭션 조회용)
+define('BSCSCAN_API_KEY', '35G7MAATB15P4WWA4USGACWTEYYYA1I7MW');
+
+// 개인키 암복호화 키
+define('ENCRYPTION_KEY', 'SERE_erc20_encryption_key_2024');
+
+// SERE 토큰 ABI 정의 (json_encode 형태)
+$SERE_ABI = json_encode([
+    [
+        "constant" => true,
+        "inputs" => [["name" => "_owner", "type" => "address"]],
+        "name" => "balanceOf",
+        "outputs" => [["name" => "balance", "type" => "uint256"]],
+        "type" => "function"
+    ],
+    [
+        "constant" => false,
+        "inputs" => [
+            ["name" => "_to", "type" => "address"],
+            ["name" => "_value", "type" => "uint256"]
+        ],
+        "name" => "transfer",
+        "outputs" => [["name" => "", "type" => "bool"]],
+        "type" => "function"
+    ]
+]);
 /**
  * 데이터베이스 연결 함수
  * 
