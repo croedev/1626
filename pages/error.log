@@ -1,0 +1,37 @@
+[20-Dec-2024 00:39:57 Asia/Seoul] PHP Fatal error:  Uncaught Error: Call to undefined method BSCClient::estimateGas() in /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php:273
+Stack trace:
+#0 /home/lidyahkc/dir/1626.lidyahk.com/index.php(135): require()
+#1 {main}
+  thrown in /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php on line 273
+[20-Dec-2024 01:02:18 Asia/Seoul] Raw Transaction: {"nonce":"0x3","gasPrice":"0x3b9aca00","gas":"0x186a0","to":"0xdA3DB1B44ddc2A7e8d28083ab0FeEDa7f5182D66","value":"0x0","data":"0xa9059cbb000000000000000000000000fd46549aec88fe91798897bc705958e68d858de200000000000000000000000000000000000000000000000107ad8f556c6c0000","chainId":56}
+[20-Dec-2024 01:02:18 Asia/Seoul] SERE Token Transfer Error: RPC error: unmarshal transaction failed
+[20-Dec-2024 01:02:18 Asia/Seoul] Swap API Error: 토큰 전송 중 오류: RPC error: unmarshal transaction failed
+[20-Dec-2024 01:02:50 Asia/Seoul] 사용자 29626 - 수수료 총액: 0.00, 포인트 총액: 0.00
+[20-Dec-2024 01:06:14 Asia/Seoul] Raw Transaction: {"nonce":"0x3","gasPrice":"0x3b9aca00","gasLimit":"0x186a0","to":"0xdA3DB1B44ddc2A7e8d28083ab0FeEDa7f5182D66","value":"0x0","data":"0xa9059cbb000000000000000000000000fd46549aec88fe91798897bc705958e68d858de200000000000000000000000000000000000000000000000a4cc799563c380000","chainId":56}
+[20-Dec-2024 01:06:14 Asia/Seoul] Transaction error: RPC error: unmarshal transaction failed
+[20-Dec-2024 01:06:14 Asia/Seoul] SERE Token Transfer Error: RPC error: unmarshal transaction failed
+[20-Dec-2024 01:06:14 Asia/Seoul] Swap API Error: 토큰 전송 중 오류: RPC error: unmarshal transaction failed
+[20-Dec-2024 01:08:17 Asia/Seoul] 사용자 25776 - 수수료 총액: 600000.00, 포인트 총액: 600000.00
+[20-Dec-2024 01:08:38 Asia/Seoul] 사용자 25776 - 수수료 총액: 600000.00, 포인트 총액: 600000.00
+[20-Dec-2024 01:12:16 Asia/Seoul] Swap API Error: RPC 오류: invalid argument 0: json: cannot unmarshal invalid hex string into Go struct field TransactionArgs.data of type hexutil.Bytes
+[20-Dec-2024 01:13:11 Asia/Seoul] Commission processed - User: 26084, Amount: 30000.00, Cash: 15000.00, Mileage: 15000.00
+[20-Dec-2024 01:13:11 Asia/Seoul] Commission processed - User: 329, Amount: 10000.00, Cash: 5000.00, Mileage: 5000.00
+[20-Dec-2024 01:16:56 Asia/Seoul] Raw Transaction: {"nonce":"0x3","gasPrice":"0x3b9aca00","gas":"0x186a0","to":"0xdA3DB1B44ddc2A7e8d28083ab0FeEDa7f5182D66","value":"0x0","data":"0xa9059cbb000000000000000000000000fd46549aec88fe91798897bc705958e68d858de200000000000000000000000000000000000000000000000a4cc799563c380000","chainId":56}
+[20-Dec-2024 01:16:56 Asia/Seoul] Swap API Error: RPC 오류: unmarshal transaction failed
+[20-Dec-2024 01:18:32 Asia/Seoul] 사용자 10 - 수수료 총액: 5421600.00, 포인트 총액: 135400.00
+[20-Dec-2024 01:18:32 Asia/Seoul] 사용자 10의 불일치 감지 - 수수료 총액: 5421600.00, 포인트 총액: 135400.00
+[20-Dec-2024 01:24:44 Asia/Seoul] Swap API Error: RPC 오류: unmarshal transaction failed
+[20-Dec-2024 01:36:22 Asia/Seoul] Raw Transaction: {"nonce":"0x3","gasPrice":"0x3b9aca00","gas":"0x30d40","to":"0xda3db1b44ddc2a7e8d28083ab0feeda7f5182d66","value":"0x0","data":"0xa9059cbb000000000000000000000000fd46549aec88fe91798897bc705958e68d858de200000000000000000000000000000000000000000000000a4cc799563c380000","chainId":56}
+[20-Dec-2024 01:36:22 Asia/Seoul] Swap API Error: RPC 오류: unmarshal transaction failed
+[20-Dec-2024 01:36:37 Asia/Seoul] Raw Transaction: {"nonce":"0x3","gasPrice":"0x3b9aca00","gas":"0x30d40","to":"0xda3db1b44ddc2a7e8d28083ab0feeda7f5182d66","value":"0x0","data":"0xa9059cbb000000000000000000000000fd46549aec88fe91798897bc705958e68d858de200000000000000000000000000000000000000000000000a4cc799563c380000","chainId":56}
+[20-Dec-2024 01:36:37 Asia/Seoul] Swap API Error: RPC 오류: unmarshal transaction failed
+[20-Dec-2024 01:53:42 Asia/Seoul] PHP Warning:  bccomp(): bcmath function argument is not well-formed in /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php on line 245
+[20-Dec-2024 01:53:42 Asia/Seoul] Swap API Error: 회사 지갑의 SERE 토큰 잔액이 부족합니다.
+[20-Dec-2024 01:56:43 Asia/Seoul] 사용자 30444 - 수수료 총액: 0.00, 포인트 총액: 0.00
+[20-Dec-2024 01:57:09 Asia/Seoul] 사용자 30444 - 수수료 총액: 0.00, 포인트 총액: 0.00
+[20-Dec-2024 02:01:52 Asia/Seoul] PHP Fatal error:  Uncaught Error: Class 'kornrunner\OfflineRawTx\Transaction' not found in /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php:194
+Stack trace:
+#0 /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php(281): BSCClient->sendTransaction('0xfdb398dd64bac...', '0xfd46549aec88f...', 190, 'ebd34ec52d70a61...', true)
+#1 /home/lidyahkc/dir/1626.lidyahk.com/index.php(135): require('/home/lidyahkc/...')
+#2 {main}
+  thrown in /home/lidyahkc/dir/1626.lidyahk.com/pages/sere_swap.php on line 194

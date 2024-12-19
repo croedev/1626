@@ -3,47 +3,65 @@
 1. users 테이블 (기존 테이블 확장)
 users 테이블은 회원 정보를 관리하고, 추천인 및 직급 관리 등을 포함할 수 있습니다. 추천인 관계는 이미 referred_by 컬럼을 통해 관리되므로 referral_tree 테이블은 필요하지 않습니다. 단, 직급, 포인트, 수수료 관련 컬럼을 추가할 필요가 있습니다.
 ---------------------------
+
 CREATE TABLE `users` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
   `email` varchar(100) NOT NULL,
   `phone` varchar(20) NOT NULL,
+  `rank` varchar(10) NOT NULL DEFAULT '회원' COMMENT '직급',
+  `referred_by` int(11) DEFAULT NULL COMMENT '추천인',
+  `commission_total` decimal(10,2) DEFAULT 0.00 COMMENT '수수료총액',
+  `cash_points` decimal(10,2) DEFAULT 0.00 COMMENT '현금포인트',
+  `mileage_points` decimal(10,2) DEFAULT 0.00 COMMENT '마일리지포인트',
+  `nft_token` int(11) DEFAULT 0 COMMENT '보유한 NFT 수량',
+  `myQuantity` int(11) DEFAULT 0 COMMENT '본인 누적 구매 수량',
+  `myAmount` decimal(15,2) DEFAULT 0.00 COMMENT '본인 누적 구매 금액',
+  `myAgent` int(11) DEFAULT 0 COMMENT '산하 총판 수',
+  `myAgent_referral` int(11) DEFAULT 0 COMMENT '직접 추천한 총판 수',
   `password` varchar(255) NOT NULL,
+  `referral_code` varchar(20) DEFAULT NULL COMMENT '추천인코드',
+  `referral_link` varchar(255) DEFAULT NULL COMMENT '추천인링크',
+  `qr_code` varchar(255) DEFAULT NULL COMMENT 'QR코드',
   `organization` varchar(100) NOT NULL,
-  `referral_code` varchar(20) DEFAULT NULL,
-  `referral_link` varchar(255) DEFAULT NULL,
-  `referred_by` int(11) DEFAULT NULL,
-  `qr_code` varchar(255) DEFAULT NULL,
   `reset_token` varchar(100) DEFAULT NULL,
   `reset_token_expires` datetime DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `rank` enum('member','total_distributor','special_distributor') DEFAULT 'member',
-  `cash_points` decimal(10,2) DEFAULT 0.00,
-  `mileage_points` decimal(10,2) DEFAULT 0.00,
-  `commission_total` decimal(10,2) DEFAULT 0.00,
+  `status` enum('active','inactive') DEFAULT 'active' COMMENT '활성화,비활성화',
+  `is_admin` tinyint(1) DEFAULT 0 COMMENT '관리자인지 여부',
+  `rank_change_date` date DEFAULT NULL COMMENT '승급일',
+  `rank_change_reason` text DEFAULT NULL COMMENT '승급사유',
   `last_purchase_date` date DEFAULT NULL,
   `total_purchases` int(11) DEFAULT 0,
+  `myTotal_quantity` int(11) DEFAULT 0 COMMENT '본인 및 산하 누적 구매 수량',
+  `myTotal_Amount` decimal(15,2) DEFAULT 0.00 COMMENT '본인 및 산하 누적 구매 금액',
+  `direct_volume` decimal(15,2) DEFAULT 0.00 COMMENT '직접 구매 실적',
+  `referrals_volume` decimal(15,2) DEFAULT 0.00 COMMENT '직접 추천인 구매 실적',
+  `ref_total_volume` decimal(15,2) unsigned DEFAULT 0.00 COMMENT '전체 하위라인 구매 실적',
+  `rank_update_date` date DEFAULT NULL COMMENT '마지막 직급 업데이트 일자',
+  `direct_referrals_count` int(11) DEFAULT 0 COMMENT '직접 추천한 회원 수',
+  `total_distributor_count` int(11) DEFAULT 0 COMMENT '하위 총판 수',
+  `special_distributor_count` int(11) DEFAULT 0 COMMENT '하위 특판 수',
+  `total_referrals_count` int(11) DEFAULT 0 COMMENT '전체 추천 회원 수',
+  `myPrize_used` decimal(15,2) DEFAULT 0.00 COMMENT '응모에 사용한 금액',
+  `myPrize_count` int(11) DEFAULT 0 COMMENT '총 응모 횟수',
+  `erc_address` varchar(256) DEFAULT NULL COMMENT 'BSC/BEP20 주소 (0x로 시작하는 42자)',
+  `private_key` varchar(256) DEFAULT NULL COMMENT '암호화된 private key',
+  `decrypt_key` varchar(256) DEFAULT NULL COMMENT '복호화관련표시,실행여부,일자',
   PRIMARY KEY (`id`),
   UNIQUE KEY `email` (`email`),
   UNIQUE KEY `phone` (`phone`),
-  UNIQUE KEY `referral_code` (`referral_code`),
   KEY `referred_by` (`referred_by`),
+  KEY `idx_myTotal_quantity` (`myTotal_quantity`),
+  KEY `idx_myAgent` (`myAgent`),
+  KEY `idx_erc_address` (`erc_address`),
   CONSTRAINT `users_ibfk_1` FOREIGN KEY (`referred_by`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=29 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=30252 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
-
-기능 설명
-rank: 사용자의 직급을 관리합니다. member는 기본 회원, total_distributor는 총판, special_distributor는 특판입니다.
-cash_points: 사용자가 현금화할 수 있는 포인트 (수익).
-mileage_points: 마일리지 포인트로, NFT 구매에 사용할 수 있습니다.
-commission_total: 사용자가 받은 총 수수료 누적 금액.
-last_purchase_date: 사용자의 마지막 구매 날짜. 승급 시 최근 구매일을 기준으로 관리할 수 있습니다.
-total_purchases: 사용자의 총 구매 수량을 저장합니다. 1,000개 이상이면 총판 승급, 10명의 총판을 육성하면 특판 승급 등 승급 조건을 계산할 수 있습니다.
 
 
 ------------------
-2. orders 테이블 (기존 테이블 확장)
-orders 테이블은 NFT 구매 내역을 저장하며, 새로운 컬럼으로 부가세 계산과 NFT 인증서 번호를 추가할 필요가 있습니다.
+2. orders 테이블 
 
 CREATE TABLE `orders` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -72,22 +90,12 @@ CREATE TABLE `orders` (
   KEY `product_id` (`product_id`),
   CONSTRAINT `orders_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `orders_ibfk_2` FOREIGN KEY (`product_id`) REFERENCES `products` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=5830 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=13190 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 
 
 
-기능 설명
-vat_amount: 구매 금액에 부가세를 저장합니다.
-certificate_number: 구매한 NFT의 인증서 번호.
-discount_applied: 총판 또는 특판 할인 금액을 기록합니다.
-order_type: 주문이 현금 결제인지 마일리지 결제인지를 구분합니다.
-
------
-
-3. commissions 테이블 (새로운 테이블)
-수수료 지급 내역을 관리하는 테이블입니다. 사용자별로 수수료 발생 내역을 기록합니다.
-
+3. commissions 테이블
 CREATE TABLE `commissions` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_id` int(11) NOT NULL,
@@ -109,51 +117,52 @@ CREATE TABLE `commissions` (
   CONSTRAINT `commissions_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `commissions_ibfk_2` FOREIGN KEY (`source_user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `commissions_ibfk_3` FOREIGN KEY (`order_id`) REFERENCES `orders` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=38428 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+) ENGINE=InnoDB AUTO_INCREMENT=47439 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 
+4. nft_history 테이블
 
 
-CREATE TABLE `commissions` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL,   -- 수수료를 받는 사용자 ID
-  `amount` DECIMAL(10,2) NOT NULL, -- 수수료 금액
-  `commission_type` ENUM('direct', 'indirect', 'override') NOT NULL, -- 수수료 유형 (직접 수익, 간접 수익, 직급 수익)
-  `source_user_id` INT(11) NOT NULL,  -- 수익이 발생한 하위 사용자 ID
-  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 수수료 발생 일시
+CREATE TABLE `nft_history` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `from_user_id` int(11) DEFAULT NULL COMMENT '송신자 ID',
+  `to_user_id` int(11) DEFAULT NULL COMMENT '수신자 ID',
+  `amount` int(11) NOT NULL COMMENT '거래 수량',
+  `transaction_date` datetime NOT NULL DEFAULT current_timestamp() COMMENT '거래 일자',
+  `transaction_type` varchar(50) NOT NULL COMMENT '거래 유형 (예: 구매, 선물)',
+  `order_id` int(11) DEFAULT NULL COMMENT '관련 주문 ID',
   PRIMARY KEY (`id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`),
-  FOREIGN KEY (`source_user_id`) REFERENCES `users`(`id`)
-);
+  KEY `from_user_id` (`from_user_id`),
+  KEY `to_user_id` (`to_user_id`),
+  CONSTRAINT `nft_history_ibfk_1` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`id`),
+  CONSTRAINT `nft_history_ibfk_2` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=33193 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
-commission_type: 직접 추천 수수료, 하위 추천인으로부터 발생한 간접 수수료, 동급 직급에 의해 발생한 직급 수수료를 구분합니다.
-source_user_id: 수수료 발생의 원인이 된 하위 사용자의 ID를 기록합니다.
 
 
-----------------
-4. withdrawals 테이블 (새로운 테이블)
-출금 요청과 관련된 정보를 관리하는 테이블입니다. 사용자는 현금 포인트를 출금 요청할 수 있으며, 관리자가 이를 확인하고 처리합니다.
+5. withdrawals 테이블 
 
 CREATE TABLE `withdrawals` (
-  `id` INT(11) NOT NULL AUTO_INCREMENT,
-  `user_id` INT(11) NOT NULL,    -- 출금 요청을 하는 사용자 ID
-  `amount` DECIMAL(10,2) NOT NULL,  -- 출금 금액
-  `status` ENUM('pending', 'completed', 'rejected') DEFAULT 'pending', -- 출금 상태 (대기중, 완료, 거절)
-  `bank_name` VARCHAR(100),      -- 은행명
-  `account_number` VARCHAR(50),  -- 계좌번호
-  `account_holder` VARCHAR(100), -- 계좌주
-  `requested_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP, -- 출금 요청 일시
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `user_id` int(11) NOT NULL COMMENT '회원 ID',
+  `bank_name` varchar(100) NOT NULL COMMENT '은행명',
+  `withdrawal_amount` decimal(15,2) NOT NULL COMMENT '출금 요청 금액',
+  `fee` decimal(10,0) DEFAULT NULL COMMENT '수수료',
+  `account_number` varchar(100) NOT NULL COMMENT '계좌 번호',
+  `account_holder` varchar(100) NOT NULL COMMENT '예금주',
+  `jumin` varchar(20) DEFAULT NULL COMMENT '주민번호',
+  `request_date` datetime NOT NULL DEFAULT current_timestamp() COMMENT '출금 요청 일자',
+  `processed_date` datetime DEFAULT NULL COMMENT '처리 일자',
+  `status` enum('pending','completed','rejected') DEFAULT 'pending' COMMENT '출금 처리 상태',
+  `admin_comment` text DEFAULT NULL COMMENT '관리자 메모',
   PRIMARY KEY (`id`),
-  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`)
-);
-
-기능 설명
-status: 관리자가 출금 요청을 승인하면 completed로 상태가 변경됩니다.
-bank_name, account_number, account_holder: 출금을 위한 계좌 정보.
+  KEY `user_id` (`user_id`),
+  CONSTRAINT `withdrawals_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
 
 
 ---------------
-5. pricing_tiers 테이블 (새로운 테이블)
+6. pricing_tiers 테이블 (새로운 테이블)
 구간별 가격 및 수량을 저장하는 테이블입니다. 각 구간에서 판매된 수량에 따라 남은 수량을 관리하며, 구간이 소진되면 다음 구간으로 넘어갑니다.
 
 CREATE TABLE `pricing_tiers` (
@@ -210,15 +219,6 @@ function processPurchase($quantity) {
 
 
 
-
------
-구간별 가격 관리: pricing_tiers 테이블을 통해 구간별 가격과 수량을 관리. (미리 각 구간별로 가격과 판매수량을 정해놈)
-수수료 관리: commissions 테이블에서 직접 수익, 간접 수익, 직급 수익을 관리.
-포인트 및 출금 관리: users 테이블의 포인트 관련 컬럼과 withdrawals 테이블을 통해 포인트 관리 및 출금 처리.
-구매 내역 및 할인 관리: orders 테이블에서 구매 내역과 할인 내역을 관리.
-
-
-
 ----------------------------------------------
 
 config.php 설정 (수수료 정책 반영)
@@ -250,148 +250,6 @@ define('ADMIN_EMAIL', 'admin@nftsite.com');  // 관리자 이메일
 
 ?>
 
-설명:
-승급 조건: TOTAL_DISTRIBUTOR_THRESHOLD, SPECIAL_DISTRIBUTOR_THRESHOLD를 통해 총판 및 특판 승급 조건을 설정.
-수수료 정책: DISTRIBUTOR_COMMISSION, SPECIAL_DISTRIBUTOR_COMMISSION를 통해 각 직급별 수익 배분 정책을 정의.
-할인 정책: 총판과 특판의 구매 할인율을 DISTRIBUTOR_DISCOUNT, SPECIAL_DISTRIBUTOR_DISCOUNT로 설정.
-출금 관련 설정: 최소 출금 금액과 수수료율을 MIN_WITHDRAWAL_AMOUNT와 WITHDRAWAL_FEE_RATE로 설정.
-기타 설정: 페이지네이션 설정과 관리자 이메일을 설정하여 기타 기본적인 정보 관리.
-
-
------------------------------
-
-**전체 파일 구조도**
------------------------------------------
-이 프로젝트는 세례주화 NFT 영업 및 수수료 지급 프로그램으로, 회원가입, 추천인 조직도, 직급에 따른 수수료 지급, NFT 구매 및 포인트 관리, 출금 요청 등의 주요 기능을 포함합니다. 또한, 관리자 페이지를 통해 수수료 정책, 출금 관리, 회원 관리 등을 수행할 수 있도록 해야 합니다. 이를 바탕으로, 각 기능을 완벽하게 수행할 수 있는 전체 파일 구조를 작성하겠습니다.
-
-파일 구조
-
-/ (루트 디렉토리)
-|-- index.php                     # 메인 페이지
-|-- config.php                    # 전역 설정 (수수료 정책, 출금 설정 등)
-|-- .htaccess                     # URL 리다이렉션 및 보안 설정
-|-- /includes/                    # 공통 모듈 디렉토리
-|    |-- header.php               # 상단 네비게이션 및 공통 헤더
-|    |-- footer.php               # 하단 푸터
-|    |-- functions.php            # 공통 함수 정의 파일 (수수료 계산, 승급 조건 체크 등)
-|-- /pages/                       # 각 기능별 페이지 파일
-|    |-- home.php                 # 메인 대시보드 페이지
-|    |-- login.php                # 로그인 페이지
-|    |-- logout.php               # 로그아웃 처리
-|    |-- register.php             # 회원가입 페이지 (추천인 입력 포함)
-|    |-- profile.php              # 사용자 프로필 페이지 (구매 내역, 추천인 정보, 직급 정보)
-|    |-- order.php                # NFT 구매 페이지
-|    |-- order_apply.php          # NFT 구매 신청 페이지
-|    |-- order_complete.php       # NFT 구매 완료 후 결과 페이지
-|    |-- commissions.php          # 수수료 내역 페이지 (직접/간접/직급 수익 확인)
-|    |-- withdraw.php             # 출금 요청 페이지
-|    |-- withdraw_history.php     # 출금 내역 조회 페이지
-|    |-- referral_organization.php # 추천인 조직도 조회 페이지
-|    |-- reset_password.php       # 비밀번호 재설정 페이지
-|    |-- forgot_password.php      # 비밀번호 분실 시 이메일 전송 페이지
-|    |-- admin/                   # 관리자 페이지 디렉토리
-|        |-- admin_dashboard.php  # 관리자 대시보드
-|        |-- admin_members.php    # 회원 관리 페이지 (회원 리스트, 직급 관리)
-|        |-- admin_commissions.php # 수수료 관리 페이지
-|        |-- admin_withdrawals.php # 출금 요청 관리 페이지
-|        |-- admin_settings.php   # 수수료 정책, 출금 설정 관리
-|-- /assets/                      # 정적 파일 디렉토리
-|    |-- css/                     # 스타일시트 디렉토리
-|    |-- js/                      # 자바스크립트 디렉토리
-|    |-- images/                  # 이미지 디렉토리
-|-- /uploads/                     # 사용자 업로드 파일 (예: NFT 인증서)
-
-
-각 파일 설명 및 역할
-1. 루트 디렉토리
-index.php: 메인 페이지로, 사용자가 처음 방문할 때 보여지는 대시보드입니다. 사용자의 구매 내역, 수익 내역, 직급 상태 등을 요약하여 보여줍니다.
-config.php: 프로젝트 전역에서 사용되는 수수료 정책, 출금 조건, 관리자 이메일 등의 설정을 담고 있습니다.
-.htaccess: URL 리다이렉션 및 보안을 위한 Apache 설정 파일입니다.
-
-2. includes/ (공통 모듈)
-header.php: 각 페이지의 상단 네비게이션과 공통 헤더를 정의합니다.
-footer.php: 각 페이지 하단의 푸터를 정의합니다.
-functions.php: 수수료 계산, 승급 조건 확인, 출금 가능 여부 등을 처리하는 공통 함수를 정의합니다. 예를 들어, 추천인 조직도 조회와 직급 승급 로직 등이 여기에 포함됩니다.
-
-3. pages/ (기능별 페이지)
-home.php: 사용자가 로그인 후 접속하는 메인 대시보드 페이지입니다. 총 수익, 직급 상태, 하위 추천인 실적, 구매 내역 등을 보여줍니다.
-login.php: 사용자 로그인 페이지입니다.
-logout.php: 로그아웃 처리 페이지입니다.
-register.php: 사용자 회원가입 페이지로, 추천인 코드를 입력받아 추천인 관계를 형성합니다.
-profile.php: 사용자의 개인 정보를 보여주는 페이지로, 구매 내역, 추천인 조직도, 직급 정보 등을 확인할 수 있습니다.
-order.php: NFT 구매 페이지로, 현재 구간별 가격과 남은 수량을 보여주고 사용자가 NFT를 구매할 수 있습니다.
-order_apply.php: 사용자가 NFT 구매를 신청하면 처리하는 페이지입니다.
-order_complete.php: NFT 구매가 완료된 후 결과를 보여주는 페이지입니다.
-commissions.php: 사용자의 수수료 내역을 보여주는 페이지입니다. 직접 수익, 간접 수익, 직급 수익을 확인할 수 있습니다.
-withdraw.php: 사용자가 현금 포인트를 출금 요청하는 페이지입니다.
-withdraw_history.php: 사용자의 출금 내역을 조회하는 페이지입니다.
-referral_organization.php: 사용자의 추천인 조직도를 시각적으로 보여주는 페이지입니다.
-reset_password.php: 비밀번호 재설정 페이지입니다.
-forgot_password.php: 비밀번호를 분실한 사용자가 이메일을 통해 비밀번호를 재설정할 수 있도록 도와주는 페이지입니다.
-
-4. admin/ (관리자 페이지)
-admin_dashboard.php: 관리자 대시보드로, 회원 수, 총 수익, 출금 요청 대기 등 주요 지표를 요약하여 보여줍니다.
-admin_members.php: 회원 관리 페이지로, 회원 리스트와 직급 상태를 확인하고, 회원의 직급을 수동으로 조정할 수 있습니다.
-admin_commissions.php: 전체 회원의 수수료 지급 내역을 관리하는 페이지입니다.
-admin_withdrawals.php: 출금 요청 내역을 관리하는 페이지로, 출금 요청을 승인하거나 거절할 수 있습니다.
-admin_settings.php: 수수료 정책, 출금 설정 등 시스템 전반의 설정을 관리하는 페이지입니다.
-
-5. assets/ (정적 파일)
-css/ (스타일시트): 각 페이지의 디자인과 스타일을 정의한 CSS 파일을 포함합니다.
-js/ (자바스크립트): 사용자 인터랙션 및 동적 UI 처리를 위한 자바스크립트 파일을 포함합니다.
-images/ (이미지): 로고, 배너, 아이콘 등 사이트에서 사용되는 이미지 파일들을 포함합니다.
-
-6. uploads/
-uploads/: 사용자가 업로드하는 NFT 인증서 파일 등이 저장되는 디렉토리입니다.
-
-
-
-앱에 추가
-♤ 소식
-뉴스 및 유튜브 동영상이  연결 되면 좋을듯 합니다.
-
-♤이벤트참가
-레플리카 1004개 
-판매가 1개당 1억
-구성 
-예수세례주화 순금10돈
-천연다이아몬드 3부 
-뺏지or목걸이
-미니금고
-
-이벤트 50개 한정
-200만원에 구입 신청
-1월 10일까지 접수
-1월 말경 랜덤 추첨 지급
-복수신청 가능
-본인 보유수량이 표시되고
-토큰 100단위 1개 구매 신청가능
-(토큰구매 아님, 신청가능갯수확인용)
-경쟁률 표시
-
-
-앱에 추가
-♤ 소식
-뉴스 및 유튜브 동영상이  연결 되면 좋을듯 합니다.
-
-♤이벤트참가
-레플리카 1004개 
-판매가 1개당 1억
-구성 
-예수세례주화 순금10돈
-천연다이아몬드 3부 
-뺏지or목걸이
-미니금고
-
-이벤트 50개 한정
-200만원에 구입 신청
-1월 10일까지 접수
-1월 말경 랜덤 추첨 지급
-복수신청 가능
-본인 보유수량이 표시되고
-토큰 100단위 1개 구매 신청가능
-(토큰구매 아님, 신청가능갯수확인용)
-경쟁률 표시
 
 
 ---구매실적금액 200개이상(40만원)당 1회신청가능
@@ -435,12 +293,111 @@ myAmount - myPrize_used >= 40만원이면 응모가능
 
 
 
-admin_nft_history.php를 작성하고자 한다. 
-위의 admin_withdrawals.php와 ui/ux는 동일하게 상단 검색컨트롤과 검색결과 합산이 필요하다.
-리스트하단에 페이징을 생성하라. 100개씩 리스트하라.
+nft_token을 SERE토큰으로 스왑하는 페이지, sere_swap.php제작
 
-리스트로 표시할 테이블은 nft_history 테이블이다. 
-디비 테이블구조는 다음과 같다.
+모든 회원들은 users 테이블에 각자 nft_token 컬럼에 각자  nft_token 수량을 보유하고 있다. 
+또한 sere_address 컬럼에 각자 보유한 SERE토큰 주소를 보유하고 있다. 개인키는 private_key 컬럼에 암호화되어 보유하고 있다. 복호화키는 decrypt_key 컬럼에 암호화되어 보유하고 있다. 
+sere_swap.php 페이지에서는 각자 보유한 nft_token 수량에서, sere_address 주소로 일정수량을 이동신청을 하면, 그 신청을 받아 실제 스왑하여 SERE토큰을 해당 주소로 실제 전송해 준다.
+
+
+실제 회사의 SERE토큰 보유지갑주소는  0xfdb398dd64bac32695992431340c8c710b03f945 이다.  
+개인키는 ebd34ec52d70a61c078648b6238e306ee9770537496c813fda5356d5734860cc 이다. 
+
+각 회원이 신청한 수량을 스왑하여, 회사의 sere토큰 지갑에서  각회원의 erc_address 주소로 실제 전송해 준다. 
+
+
+(예시화면)
+--------------------------------
+회원명: 홍길동(회원번호:1234567890)
+
+회원의 보유 nft_token 수량: 1000개
+회원의 신청 수량: [100 ]개
+스왑수수료 : [ 5% ] 자동계산
+실제 전송된 SERE토큰 수량: [100 - 5%] = 95개  (자동계산)
+
+*회원의 SERE토큰 주소: 0x1234567890abcdef
+[신청하기]
+--------------------------------
+
+스왑신청 리스트
+*신청수량합계: 1000개
+--------------------------------
+번호, 회원번호, 신청수량, 신청일시, 신청상태, 스왑수수료, 실제전송수량, 스왑주소, 처리일시, 트랜젝션해쉬,처리상태
+--------------------------------
+
+
+1.sere_swap 테이블 SQL작성하라.
+2.sere_swap.php 페이지 제작하라.
+3.sere_swap.php 페이지에서 회원의 보유 nft_token 수량을 불러오고, 신청수량을 입력받아, 스왑수수료를 자동계산하고, 실제 전송된 SERE토큰 수량을 자동계산하여, 회원의 SERE토큰 주소로 실제 전송해 주는 기능을 구현하라. 
+4. 스왑신청이 완료되면 users 테이블의 nft_token 컬럼값에서 수량을 차감하고, 그 내역을 nft_history테이블에 내역을 저장한다. 
+amount=신청수량, from_user_id=신청자아이디,  transaction_date=신청일, transaction_type="토큰스왑",  to_address="신청자의 sere토큰주소"
+5.sere_swap 테이블에 신청내역을 저장하고, 그 결과를 sere_swap.php 하단 스왑신청리스트에 표시한다.
+6. 처리상태는 트랜젝션해쉬값이 나오면 처리완료로 표시한다.
+7.sere_swap 테이블에 트랜젝션해쉬를 저장하고, 리스트에는 트랜젝션해쉬를 bscscan의 트랜젝션 주소를 표시하여 링크가 가능하게 하라. 
+8. BSC기반 SERE토큰의 전송, 조회등의 기능은 이미 sere_wallet.php페이지에 구현되어 있어 이를 참조하여 오류없이 구현하라.
+9. sere_swap.php페이지와 sere_wallet.php페이지는 같은 경로에 있다.
+10. sere_swap.php페이지는 sere_wallet.php페이지의 다크모드,디자인의 일관성, 페이지의 디자인을 참조하여 구현하라.
+11. PHP,Html,css, Javascript 가 모두 sere_swap.php 한페이지에서 구현되도록 하라.
+12. Json오류가 발생하지 않도록 하라.
+
+
+
+CREATE TABLE `users` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(100) NOT NULL,
+  `email` varchar(100) NOT NULL,
+  `phone` varchar(20) NOT NULL,
+  `rank` varchar(10) NOT NULL DEFAULT '회원' COMMENT '직급',
+  `referred_by` int(11) DEFAULT NULL COMMENT '추천인',
+  `commission_total` decimal(10,2) DEFAULT 0.00 COMMENT '수수료총액',
+  `cash_points` decimal(10,2) DEFAULT 0.00 COMMENT '현금포인트',
+  `mileage_points` decimal(10,2) DEFAULT 0.00 COMMENT '마일리지포인트',
+  `nft_token` int(11) DEFAULT 0 COMMENT '보유한 NFT 수량',
+  `myQuantity` int(11) DEFAULT 0 COMMENT '본인 누적 구매 수량',
+  `myAmount` decimal(15,2) DEFAULT 0.00 COMMENT '본인 누적 구매 금액',
+  `myAgent` int(11) DEFAULT 0 COMMENT '산하 총판 수',
+  `myAgent_referral` int(11) DEFAULT 0 COMMENT '직접 추천한 총판 수',
+  `password` varchar(255) NOT NULL,
+  `referral_code` varchar(20) DEFAULT NULL COMMENT '추천인코드',
+  `referral_link` varchar(255) DEFAULT NULL COMMENT '추천인링크',
+  `qr_code` varchar(255) DEFAULT NULL COMMENT 'QR코드',
+  `organization` varchar(100) NOT NULL,
+  `reset_token` varchar(100) DEFAULT NULL,
+  `reset_token_expires` datetime DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `status` enum('active','inactive') DEFAULT 'active' COMMENT '활성화,비활성화',
+  `is_admin` tinyint(1) DEFAULT 0 COMMENT '관리자인지 여부',
+  `rank_change_date` date DEFAULT NULL COMMENT '승급일',
+  `rank_change_reason` text DEFAULT NULL COMMENT '승급사유',
+  `last_purchase_date` date DEFAULT NULL,
+  `total_purchases` int(11) DEFAULT 0,
+  `myTotal_quantity` int(11) DEFAULT 0 COMMENT '본인 및 산하 누적 구매 수량',
+  `myTotal_Amount` decimal(15,2) DEFAULT 0.00 COMMENT '본인 및 산하 누적 구매 금액',
+  `direct_volume` decimal(15,2) DEFAULT 0.00 COMMENT '직접 구매 실적',
+  `referrals_volume` decimal(15,2) DEFAULT 0.00 COMMENT '직접 추천인 구매 실적',
+  `ref_total_volume` decimal(15,2) unsigned DEFAULT 0.00 COMMENT '전체 하위라인 구매 실적',
+  `rank_update_date` date DEFAULT NULL COMMENT '마지막 직급 업데이트 일자',
+  `direct_referrals_count` int(11) DEFAULT 0 COMMENT '직접 추천한 회원 수',
+  `total_distributor_count` int(11) DEFAULT 0 COMMENT '하위 총판 수',
+  `special_distributor_count` int(11) DEFAULT 0 COMMENT '하위 특판 수',
+  `total_referrals_count` int(11) DEFAULT 0 COMMENT '전체 추천 회원 수',
+  `myPrize_used` decimal(15,2) DEFAULT 0.00 COMMENT '응모에 사용한 금액',
+  `myPrize_count` int(11) DEFAULT 0 COMMENT '총 응모 횟수',
+  `erc_address` varchar(256) DEFAULT NULL COMMENT 'BSC/BEP20 주소 (0x로 시작하는 42자)',
+  `private_key` varchar(256) DEFAULT NULL COMMENT '암호화된 private key',
+  `decrypt_key` varchar(256) DEFAULT NULL COMMENT '복호화관련표시,실행여부,일자',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `email` (`email`),
+  UNIQUE KEY `phone` (`phone`),
+  KEY `referred_by` (`referred_by`),
+  KEY `idx_myTotal_quantity` (`myTotal_quantity`),
+  KEY `idx_myAgent` (`myAgent`),
+  KEY `idx_erc_address` (`erc_address`),
+  CONSTRAINT `users_ibfk_1` FOREIGN KEY (`referred_by`) REFERENCES `users` (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=30285 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
+
+
+
 
 CREATE TABLE `nft_history` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
@@ -450,22 +407,10 @@ CREATE TABLE `nft_history` (
   `transaction_date` datetime NOT NULL DEFAULT current_timestamp() COMMENT '거래 일자',
   `transaction_type` varchar(50) NOT NULL COMMENT '거래 유형 (예: 구매, 선물)',
   `order_id` int(11) DEFAULT NULL COMMENT '관련 주문 ID',
+  `to_address` varchar(250) DEFAULT NULL COMMENT '전송주소',
   PRIMARY KEY (`id`),
   KEY `from_user_id` (`from_user_id`),
   KEY `to_user_id` (`to_user_id`),
   CONSTRAINT `nft_history_ibfk_1` FOREIGN KEY (`from_user_id`) REFERENCES `users` (`id`),
   CONSTRAINT `nft_history_ibfk_2` FOREIGN KEY (`to_user_id`) REFERENCES `users` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=30372 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci
-
-
-리스트 출력순서는 다음과 같다.
-번호, 송신자명(id), 수신자명(id), 거래수량, 거래일시, 거래유형, 관련주문id
-
-여기서 대부분 nft_history테이블의 정보를 불러와서 리스트에 표시하되,
-단, 송신자명,수신자명은 디비에서는 user_id (회원번호)만 표시되어 이를 users 회원테이블의 값과 조인하여 이름을 병기해야 한다.  즉 users테이블의 해당 id의 name값을 찾아 (user_id)   홍길동(212)  이런식으로 표시한다.  
-
-검색ui/ux는 기존과 모두 같으나, 
-검색항목을 구분할 필요가 있다. 왜냐면, 우선 이름으로 검색하면, 그검색한 사람의 송신내역,수신내역이 모두 조회가 된다.
-이때 합계는 송신NFT수량 합계, 수신NFT수량 합계로 구분해야 한다.
-또한 검색항목은 송신자명, 수신자명, id, 거래수량, 거래일시, 거래유형, 관련주문id  로 모두 조회가 가능해야 한다.
-또한 검색결과 상단에 적절한 합계를 표시하라.
+) ENGINE=InnoDB AUTO_INCREMENT=33218 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci

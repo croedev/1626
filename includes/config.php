@@ -56,11 +56,14 @@ $SERE_ABI = json_encode([
         "type" => "function"
     ]
 ]);
-/**
- * 데이터베이스 연결 함수
- * 
- * @return mysqli 데이터베이스 연결 객체
- */
+
+
+// 회사 SERE 지갑 정보
+define('COMPANY_SERE_ADDRESS', '0xfdb398dd64bac32695992431340c8c710b03f945');
+define('COMPANY_PRIVATE_KEY', 'ebd34ec52d70a61c078648b6238e306ee9770537496c813fda5356d5734860cc');
+define('SWAP_FEE_PERCENTAGE', 5);
+
+
 function db_connect() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) {

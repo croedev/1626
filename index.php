@@ -104,30 +104,35 @@ switch ($request_uri) {
     require __DIR__ . '/pages/prize_apply.php';
     break;
 
-              case '/notice':
+    case '/notice':
     require __DIR__ . '/pages/notice.php';
     break;
 
-                  case '/summary':
+    case '/summary':
     require __DIR__ . '/pages/summary.php';
     break;
 
     
-                  case '/admin':
+    case '/admin':
     require __DIR__ . '/admin/index.php';
     break;
 
-                      case '/admin_members':
+    case '/admin_members':
     require __DIR__ . '/admin/admin_members.php';
     break;
 
-                      case '/admin_orders':
+    case '/admin_orders':
     require __DIR__ . '/admin/admin_orders.php';
     break;
 
 
-                          case '/sere_wallet':
+    case '/sere_wallet':
     require __DIR__ . '/pages/sere_wallet.php';
+    break;
+
+
+    case '/sere_swap':
+    require __DIR__ . '/pages/sere_swap.php';
     break;
 
 
