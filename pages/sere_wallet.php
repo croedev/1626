@@ -808,7 +808,7 @@ if ($usdt_krw_rate !== null) {
 
         .copy-address {
             cursor: pointer;
-            color: var(--primary-gold);
+            color: var(--text-gray);
         }
 
         .copy-address:hover {
@@ -952,33 +952,40 @@ if ($usdt_krw_rate !== null) {
     const currentAddress = "<?php echo $user['erc_address']; ?>";
     let currentPage = 1;
 
+    // updateBalances 함수 내 수정 부분
     async function updateBalances() {
         try {
             const data = await makeRequest('get_balances');
             if (data.success) {
-                const sere = formatEther(data.sere);
-                const bnb = formatEther(data.bnb);
+                const sere = formatEther(data.sere); // 예: "1799790.0000"
+                const bnb = formatEther(data.bnb);   // 예: "0.0997"
 
-                // PHP 변수를 JavaScript 변수로 선언
+                // SERE 표시 부분 수정
+                const sereElement = document.getElementById('sere-balance');
+                sereElement.setAttribute('data-balance', sere); // <-- 실제 숫자값을 data-balance에 저장
+                sereElement.innerHTML = sere.split('.')[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') 
+                                        + `<span style="font-size:0.8em;">.${sere.split('.')[1]}</span> <span class="fs-9">SERE</span>`;
+
+                // BNB 표시 부분 수정 (bnb도 동일하게 처리)
+                const bnbElement = document.getElementById('bnb-balance');
+                bnbElement.setAttribute('data-balance', bnb); // <-- 실제 숫자값을 data-balance에 저장
+                bnbElement.innerHTML = bnb + ` <span class="fs-9">BNB</span>`;
+
+                // 가격 계산 부분은 그대로 두어도 됨
                 const sere_usdt = <?php echo json_encode($sere_usdt); ?>;
                 const bnb_usdt = <?php echo json_encode($bnb_usdt); ?>;
-                
-                // 가격 계산
                 const sere_price = sere_usdt * parseFloat(sere);
                 const bnb_price = bnb_usdt * parseFloat(bnb);
 
-                document.getElementById('sere-balance').textContent = `${sere} `;
-                document.getElementById('sere-balance').innerHTML = sere.split('.')[0].replace(/\B(?=(\d{3})+(?!\d))/g, ',') + `<span style="font-size:0.8em;">.${sere.split('.')[1]}</span> <span class="fs-9">SERE</span>`;
                 document.getElementById('sere-price').innerHTML = `$${sere_price.toFixed(2)} USD`;
-
-                document.getElementById('bnb-balance').textContent = `${bnb} `;
-                document.getElementById('bnb-balance').innerHTML += `<span class="fs-9">BNB</span>`;
                 document.getElementById('bnb-price').innerHTML = `$${bnb_price.toFixed(2)} USD`;
             }
         } catch (e) {
             console.error('Balance update error:', e);
         }
     }
+
+
 
     function formatEther(value) {
         const ether = parseFloat(value) / 1e18;
@@ -1016,7 +1023,7 @@ if ($usdt_krw_rate !== null) {
 
         // 주소 축약 표시를 위한 함수
         const shortenAddress = (address) => {
-            return address.substring(0, 6) + '...' + address.substring(address.length - 4);
+            return address.substring(0, 16) + '...' + address.substring(address.length - 4);
         };
 
         let feeInfo = '';
@@ -1029,7 +1036,12 @@ if ($usdt_krw_rate !== null) {
         return `
         <div class="transaction-item">
             <div class="transaction-head">
-                <div><strong>${direction}</strong> (${type})</div>
+                <div>
+                    <img src="${type === 'SERE' ? 'https://jesus1626.com/sere_logo.png' : 'https://cryptologos.cc/logos/binance-coin-bnb-logo.png'}" 
+                         alt="${type}" 
+                         style="width: 20px; height: 20px; vertical-align: middle; margin-right: 5px;">
+                    <strong>${direction}</strong> (${type})
+                </div>
                 <a href="${hashLink}" target="_blank" class="transaction-link">View on BscScan</a>
             </div>
             <div class="transaction-details">
@@ -1047,9 +1059,10 @@ if ($usdt_krw_rate !== null) {
                     </span>
                     ${!isSent ? '<span class="text-orange fs-9">(Me)</span>' : ''}
                 </div>
-                <div>Amount: ${amount}</div>
+                <div>Amount: <span class="text-orange">${amount}</span></div>
                 ${feeInfo}
                 <div class="text-gray1 fs-10">Date: ${time}</div>
+                <div class="text-gray1 fs-10">TxHash: <a href="https://bscscan.com/tx/${tx.hash}" target="_blank" class="text-blue3 underline-none">${shortenHash(tx.hash)}</a> <i class="fas fa-copy" style="cursor:pointer; color:#666;" onclick="navigator.clipboard.writeText('${tx.hash}').then(() => alert('복사되었습니다.'))"></i></div>
             </div>
         </div>
         `;
@@ -1057,7 +1070,7 @@ if ($usdt_krw_rate !== null) {
 
 
     function shortenHash(hash) {
-        return hash.substring(0, 10) + '...' + hash.substring(hash.length - 8);
+        return hash.substring(0, 28) + '...' + hash.substring(hash.length - 8);
     }
 
     async function makeRequest(action, data = {}) {
@@ -1253,14 +1266,15 @@ if ($usdt_krw_rate !== null) {
     // 잔액 확인 함수
     async function checkBalance(amount, type) {
         const balanceElement = document.getElementById(type.toLowerCase() + '-balance');
-        const balanceText = balanceElement.textContent;
-        const currentBalance = parseFloat(balanceText.split(' ')[0]);
+        // 기존에는 textContent에서 콤마를 제거하고 parseFloat했지만 이제 data-balance 속성 사용
+        const currentBalance = parseFloat(balanceElement.getAttribute('data-balance')); 
         return {
             hasBalance: amount <= currentBalance,
             currentBalance: currentBalance
         };
     }
 
+    
     // 예상 가스비 계산 함수
     async function estimateGasFee() {
         try {

@@ -430,8 +430,9 @@ include __DIR__ . '/../includes/header.php';
 
         .info-label {
             color: var(--text-gray);
-            font-size: 0.8em;
+            font-size: 0.9em;
             margin-bottom: 5px;
+            font-weight: 700;
         }
 
         .info-value {
@@ -525,8 +526,9 @@ include __DIR__ . '/../includes/header.php';
 
         .swap-label {
             color: var(--text-gray);
-            font-size: 0.9em;
-            font-weight: 500;
+            font-size: 0.8em;
+            font-weight: 400;
+            font-family: 'Noto Serif KR', serif;
         }
 
         @media (max-width: 768px) {
@@ -547,32 +549,31 @@ include __DIR__ . '/../includes/header.php';
 
     <div class="main-container">
         <div class="swap-card">
-            <h5 class="notoserif rem-10 text-orange">NFT Token → SERE Token 스왑</h5>
+            <h5 class="notoserif rem-10 text-orange mb10" style="text-align: center;">NFT Token → SERE Token 스왑</h5>
             <div class="swap-info">
-                <div class="info-item">
-                    <div class="info-label">보유 NFT Token수량 : 
+                <div class="info-item bg-blur90 border-gray05 mb20s">
+                    <div class="info-label">보유 NFT Token수량 : <bR>
                     <span class="fs-16 text-orange"><?php echo number_format($user['nft_token']); ?> 개</span>
                 </div>
             </div>
 
             <div id="error-message" class="error-message"></div>
 
-            <div class="info-item">
-                <div class="info-label">스왑할 토큰수량</div>
-                <input type="number" id="swap-amount" class="swap-input" placeholder="스왑할 NFT Token 수량 입력">
+            <div class="info-item bg-black border-gray05">
+                <div class="info-label mb10">스왑할 토큰수량(20개이상~1000개이하)</div>
+                <input type="number" id="swap-amount" class="swap-input bg-white text-black fw-900" min="20" max="1000" placeholder="수량 입력(20~1000개)" oninput="validateAmount(this)">
             </div>
-
-                <div class="info-item">
-                <div class="info-label">블록체인 수수료: <span id="feeAmount" class="fs-14 text-orange">0</span>개 (<?php echo SWAP_FEE_PERCENTAGE; ?>%)</div>
-                </div>
+              
+                <div class="info-label"><i class="fas fa-coins"></i> 블록체인 수수료: <span id="feeAmount" class="fs-16 ml10 text-orange">0</span>개 (<?php echo SWAP_FEE_PERCENTAGE; ?>%)</div>
+               
 
                 <div class="info-item bg-red100 border-yellow05">
-                <div class="info-label">실제스왑 수량(SERE): <span id="estimated-sere" class="fs-25 text-orange">0</span> SERE</div>
+                <div class="info-label"><img src="https://jesus1626.com/sere_logo.png" alt="SERE" style="width: 40px; height: 40px; vertical-align: middle; margin-right: 5px;">실제스왑 수량(SERE): <span id="estimated-sere" class="fs-25 ml10 text-orange">0</span> SERE</div>
                 </div>
 
             <div class="info-item">
-                <div class="info-label">스왑할 나의 SERE 지갑 주소</div>
-                <div class="info-value" style="font-size: 10px; display: flex; align-items: center; gap: 5px;">
+                <div class="info-label">나의 SERE 지갑 주소</div>
+                <div class="info-value" style="font-size: 13px; display: flex; align-items: center; gap: 5px;">
                     <?php echo $user['erc_address']; ?>
                     <i class="fas fa-copy" onclick="copyToClipboard('<?php echo $user['erc_address']; ?>')" style="cursor: pointer; color: var(--primary-gold);" title="클립보드에 복사"></i>
                 </div>
@@ -641,8 +642,8 @@ include __DIR__ . '/../includes/header.php';
                 hideError();
                 const amount = parseInt(document.getElementById('swap-amount').value);
 
-                if (!amount || amount <= 0) {
-                    showError('유효한 수량을 입력하세요.');
+                if (!amount || amount < 20 || amount > 1000) {
+                    showError('20개에서 1000개 사이의 수량을 입력해주세요.');
                     return;
                 }
 
@@ -707,7 +708,7 @@ include __DIR__ . '/../includes/header.php';
 
         const txLink = item.tx_hash ?
             `<a href="https://bscscan.com/tx/${item.tx_hash}" target="_blank" class="tx-link">
-                ${item.tx_hash.substring(0, 8)}...
+                ${item.tx_hash.substring(0, 28)}...
             </a>` : '-';
 
         return `
@@ -720,7 +721,7 @@ include __DIR__ . '/../includes/header.php';
                
                     <div class="swap-label">실제수량 : <span class="rem-08 text-orange">${Number(item.sere_amount).toLocaleString()} SERE</span></div>
                
-                    <div class="swap-label">상태 : <span class="${statusClass}">${statusText}</span></div>
+                    <div class="swap-label">상태 : <span class="badge outline ${statusClass}">${statusText}</span></div>
                
                     <div class="swap-label">트랜잭션 : <span class="rem-08 text-orange">${txLink}</span></div>
                
@@ -774,27 +775,21 @@ include __DIR__ . '/../includes/header.php';
         document.getElementById('loading-overlay').style.display = 'none';
     }
 
-    async function makeRequest(action, data = {}) {
-        try {
-            const formData = new FormData();
-            formData.append('action', action);
-            for (let k in data) formData.append(k, data[k]);
-
-            const response = await fetch(window.location.href, {
-                method: 'POST',
-                body: formData
-            });
-
-            const result = await response.json();
-            
-            if (!result.success) {
-                throw new Error(result.message || '처리 중 오류가 발생했습니다.');
-            }
-
-            return result;
-        } catch (e) {
-            console.error('Request error:', e);
-            throw e;
+    function validateAmount(input) {
+        const amount = parseInt(input.value);
+        const errorDiv = document.getElementById('error-message');
+        
+        if (amount < 20) {
+            errorDiv.textContent = '최소 20개 이상 입력해주세요.';
+            errorDiv.style.display = 'block';
+            document.getElementById('swap-button').disabled = true;
+        } else if (amount > 1000) {
+            errorDiv.textContent = '최대 1000개까지만 입력 가능합니다.';
+            errorDiv.style.display = 'block';
+            document.getElementById('swap-button').disabled = true;
+        } else {
+            errorDiv.style.display = 'none';
+            document.getElementById('swap-button').disabled = false;
         }
     }
 
