@@ -19,10 +19,6 @@ define('DB_NAME', 'lidyahkc_1626');
 define('SITE_NAME', '예수 세례주화 NFT 프로젝트');
 define('SITE_URL', 'https://1626.lidyahk.com');
 
-// 카카오 API 키
-define('KAKAO_API_KEY', 'c9e708d6ad0e4ead5dc265350b6d4d89');
-
-
 // BSC 설정
 define('BSC_RPC_URL', 'https://bsc-dataseed1.binance.org');
 define('BSC_CHAIN_ID', '56');
@@ -58,10 +54,15 @@ $SERE_ABI = json_encode([
 ]);
 
 
-// 회사 SERE 지갑 정보
-define('COMPANY_SERE_ADDRESS', '0xfdb398dd64bac32695992431340c8c710b03f945');
-define('COMPANY_PRIVATE_KEY', 'ebd34ec52d70a61c078648b6238e306ee9770537496c813fda5356d5734860cc');
+// 회사 SERE 지갑 정보(수수료)
+define('COMPANY_SERE_ADDRESS', '0xaf437b8D6Ab2ECa93502302eef2FffAd97eFD03E');
+define('COMPANY_PRIVATE_KEY', '02e3e03a0d26fd010b1101ef42427eba21cc21c4715283ebe55ace3f188b8f97');
 define('SWAP_FEE_PERCENTAGE', 5);
+
+
+// 카카오 API 키
+define('KAKAO_API_KEY', 'c9e708d6ad0e4ead5dc265350b6d4d89');
+
 
 
 function db_connect() {

@@ -135,6 +135,10 @@ switch ($request_uri) {
     require __DIR__ . '/pages/sere_swap.php';
     break;
 
+        case '/sere_wallet_fee':
+    require __DIR__ . '/pages/sere_wallet_fee.php';
+    break;  
+
 
     default:
         // 404 에러 페이지

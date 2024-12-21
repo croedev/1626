@@ -4,7 +4,7 @@ require_once __DIR__ . '/../includes/config.php';
 
 // 로그인 체크
 if (!is_logged_in()) {
-    header("Location: /login");
+    header("Location: /login?redirect=/profile");
     exit;
 }
 
@@ -255,8 +255,8 @@ $referrer_info = $user['referrer_name'] ? $user['referrer_name'] . ' (' . $user[
                 <button class="btn-outline" onclick="location.href='/nft_transfer'">NFT선물하기</button> 
                 <button class="btn-outline" onclick="location.href='/withdrawals'">출금신청</button> 
 
-                <!-- <button class="btn-outline" onclick="location.href='/sere_swap'">NFT토큰스왑</button> -->
-                <button class="btn-outline" onclick="location.href='/sere_wallet'">SERE월렛(지갑)</button>
+                <button class="btn-outline bg-gray60" onclick="location.href='/sere_swap'">NFT토큰(스왑)</button>
+                <button class="btn-outline bg-gray60" onclick="location.href='/sere_wallet'">SERE월렛(지갑)</button>
 
                 <button class="btn-outline" onclick="location.href='/nftmovie'">NFT성경찬송</button>
                 <button class="btn-outline" onclick="location.href='/forgot_password'">비밀번호변경</button>
