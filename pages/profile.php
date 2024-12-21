@@ -254,7 +254,9 @@ $referrer_info = $user['referrer_name'] ? $user['referrer_name'] . ' (' . $user[
                 <button class="btn-outline" onclick="location.href='/commission'">수수료조회</button>
                 <button class="btn-outline" onclick="location.href='/nft_transfer'">NFT선물하기</button> 
                 <button class="btn-outline" onclick="location.href='/withdrawals'">출금신청</button> 
-                <button class="btn-outline" onclick="location.href='/sere_wallet'">SERE 지갑</button>
+
+                <!-- <button class="btn-outline" onclick="location.href='/sere_swap'">NFT토큰스왑</button> -->
+                <button class="btn-outline" onclick="location.href='/sere_wallet'">SERE월렛(지갑)</button>
 
                 <button class="btn-outline" onclick="location.href='/nftmovie'">NFT성경찬송</button>
                 <button class="btn-outline" onclick="location.href='/forgot_password'">비밀번호변경</button>

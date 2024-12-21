@@ -5,7 +5,8 @@ ini_set('log_errors', 1);
 ini_set('error_log', '/home/lidyahkc/dir/1626.lidyahk.com/pages/error.log');
 
 session_start();
-require_once __DIR__ . '/../includes/config.php'; // 여기서 BSC_RPC_URL, SERE_CONTRACT, COMPANY_SERE_ADDRESS, COMPANY_PRIVATE_KEY, SWAP_FEE_PERCENTAGE, $SERE_ABI 로드
+require_once __DIR__ . '/../includes/config.php'; 
+// 여기서 BSC_RPC_URL, SERE_CONTRACT, COMPANY_SERE_ADDRESS, COMPANY_PRIVATE_KEY, SWAP_FEE_PERCENTAGE, $SERE_ABI 로드
 require __DIR__ . '/../vendor/autoload.php';
 
  // 설치한 패키지 사용
@@ -367,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
-$pageTitle = 'SERE Token Swap';
+$pageTitle = 'NFT 세례토큰 스왑';
 include __DIR__ . '/../includes/header.php';
 ?>
 
@@ -542,7 +543,7 @@ include __DIR__ . '/../includes/header.php';
     <div class="nav-container">
         <div style="display: flex; align-items: center; gap: 10px;">
             <img src="https://jesus1626.com/sere_logo.png" alt="SERE" height="40">
-            <span style="font-size: 1em; font-weight: bold;">Token Swap</span>
+            <span style="font-size: 1em; font-weight: bold;">NFT Token Swap</span>
         </div>
         <span class="rem-08 text-orange"><?php echo htmlspecialchars($user['name']).'('.$user['id'].')'; ?></span>
     </div>
@@ -561,7 +562,7 @@ include __DIR__ . '/../includes/header.php';
 
             <div class="info-item bg-black border-gray05">
                 <div class="info-label mb10">스왑할 토큰수량(20개이상~1000개이하)</div>
-                <input type="number" id="swap-amount" class="swap-input bg-white text-black fw-900" min="20" max="1000" placeholder="수량 입력(20~1000개)" oninput="validateAmount(this)">
+                <input type="number" id="swap-amount" class="swap-input bg-white text-black fw-900 notoserif" min="20" max="1000" placeholder="수량 입력(20~1000개)" style="font-size: 0.9em;" oninput="validateAmount(this)">
             </div>
               
                 <div class="info-label"><i class="fas fa-coins"></i> 블록체인 수수료: <span id="feeAmount" class="fs-16 ml10 text-orange">0</span>개 (<?php echo SWAP_FEE_PERCENTAGE; ?>%)</div>
@@ -592,6 +593,10 @@ include __DIR__ . '/../includes/header.php';
                 <button id="swap-button" class="swap-button">스왑하기</button>
             </div>
         </div>
+
+
+        
+                <button class="btn-outline text-orange notoserif btn-14" onclick="location.href='/sere_wallet'">SERE월렛(지갑) 보기</button>
 
 
 
