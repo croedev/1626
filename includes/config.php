@@ -1,38 +1,107 @@
-<?php /*
-error_reporting(E_ALL);
-ini_set('display_errors', 0);
-ini_set('log_errors', 1);
-ini_set('error_log', '../error.log');
-*/
-?>
-
 <?php
 
 date_default_timezone_set('Asia/Seoul');
+
+// Composer autoload 및 Dotenv 설정
+require_once __DIR__ . '/../vendor/autoload.php';
+
+// Dotenv 초기화 (.env 파일이 웹 루트 상위에 있음)
+try {
+    $dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+    $dotenv->load();
+
+    // 필수 환경변수 확인
+    $dotenv->required([
+        'DB_HOST', 'DB_USER', 'DB_PASS', 'DB_NAME',
+        'COMPANY_PRIVATE_KEY', 'ENCRYPTION_KEY'
+    ])->notEmpty();
+} catch (Exception $e) {
+    error_log('Environment configuration error: ' . $e->getMessage());
+    die('Configuration Error: Please contact administrator');
+}
+
+// 안전한 환경변수 접근 함수
+function env($key, $default = null) {
+    return $_ENV[$key] ?? $default;
+}
+
 // 데이터베이스 설정
-define('DB_HOST', 'localhost');
-define('DB_USER', 'lidyahkc_0');
-define('DB_PASS', 'lidya2016$');
-define('DB_NAME', 'lidyahkc_1626');
+define('DB_HOST', env('DB_HOST', 'localhost'));
+define('DB_USER', env('DB_USER'));
+define('DB_PASS', env('DB_PASS'));
+define('DB_NAME', env('DB_NAME'));
 
 // 사이트 설정
-define('SITE_NAME', '예수 세례주화 NFT 프로젝트');
-define('SITE_URL', 'https://1626.lidyahk.com');
+define('SITE_NAME', env('SITE_NAME', '예수 세례주화 NFT 프로젝트'));
+define('SITE_URL', env('SITE_URL', 'https://1626.lidyahk.com'));
 
 // BSC 설정
-define('BSC_RPC_URL', 'https://bsc-dataseed1.binance.org');
-define('BSC_CHAIN_ID', '56');
+define('BSC_RPC_URL', env('BSC_RPC_URL'));
+define('BSC_CHAIN_ID', env('BSC_CHAIN_ID'));
+define('SERE_CONTRACT', env('SERE_CONTRACT'));
+define('BSCSCAN_API_KEY', env('BSCSCAN_API_KEY'));
 
-// SERE 토큰 관련 설정
-define('SERE_CONTRACT', '0xdA3DB1B44ddc2A7e8d28083ab0FeEDa7f5182D66');
+// 개인키 암호화/복호화 함수
+function encryptPrivateKey($privateKey, $encryptionKey) {
+    $ivlen = openssl_cipher_iv_length($cipher = "AES-256-CBC");
+    $iv = openssl_random_pseudo_bytes($ivlen);
+    $encrypted = openssl_encrypt($privateKey, $cipher, $encryptionKey, 0, $iv);
+    return base64_encode($iv . $encrypted);
+}
 
-// BSCScan API 키 (트랜잭션 조회용)
-define('BSCSCAN_API_KEY', '35G7MAATB15P4WWA4USGACWTEYYYA1I7MW');
+function decryptPrivateKey($encryptedData, $encryptionKey) {
+    try {
+        $data = base64_decode($encryptedData);
+        $cipher = "AES-256-CBC";
+        $ivlen = openssl_cipher_iv_length($cipher);
+        $iv = substr($data, 0, $ivlen);
+        $encrypted = substr($data, $ivlen);
+        $decrypted = openssl_decrypt($encrypted, $cipher, $encryptionKey, 0, $iv);
+        if ($decrypted === false) {
+            throw new Exception("Decryption failed");
+        }
+        return $decrypted;
+    } catch (Exception $e) {
+        error_log('Decryption error: ' . $e->getMessage());
+        return false;
+    }
+}
 
-// 개인키 암복호화 키
-define('ENCRYPTION_KEY', 'SERE_erc20_encryption_key_2024');
+// 개인키 처리
+$privateKey = env('COMPANY_PRIVATE_KEY');
+$encryptionKey = env('ENCRYPTION_KEY');
+define('COMPANY_PRIVATE_KEY_ENCRYPTED', encryptPrivateKey($privateKey, $encryptionKey));
 
-// SERE 토큰 ABI 정의 (json_encode 형태)
+// 개인키 사용 함수
+function getCompanyPrivateKey() {
+    $decrypted = decryptPrivateKey(COMPANY_PRIVATE_KEY_ENCRYPTED, env('ENCRYPTION_KEY'));
+    // 16진수 문자열 검증 및 정규화
+    $key = preg_replace('/^0x/', '', trim($decrypted));
+    if (!preg_match('/^[a-f0-9]{64}$/i', $key)) {
+        error_log('Invalid private key format');
+        throw new Exception('Invalid private key format');
+    }
+    return $key;
+}
+
+// SERE 토큰 설정
+define('COMPANY_SERE_ADDRESS', env('COMPANY_SERE_ADDRESS'));
+define('SWAP_FEE_PERCENTAGE', 5);
+
+// SMTP 설정
+define('SMTP_HOST', env('SMTP_HOST'));
+define('SMTP_PORT', env('SMTP_PORT'));
+define('SMTP_USERNAME', env('SMTP_USERNAME'));
+define('SMTP_PASSWORD', env('SMTP_PASSWORD'));
+define('SMTP_FROM', env('SMTP_FROM'));
+define('SMTP_FROM_NAME', env('SMTP_FROM_NAME'));
+
+
+
+// 카카오 API 설정
+define('KAKAO_API_KEY', env('KAKAO_API_KEY'));
+
+// ABI 정의는 그대로 유지
 $SERE_ABI = json_encode([
     [
         "constant" => true,
@@ -53,25 +122,17 @@ $SERE_ABI = json_encode([
     ]
 ]);
 
-
-// 회사 SERE 지갑 정보(수수료)
-define('COMPANY_SERE_ADDRESS', '0xaf437b8D6Ab2ECa93502302eef2FffAd97eFD03E');
-define('COMPANY_PRIVATE_KEY', '02e3e03a0d26fd010b1101ef42427eba21cc21c4715283ebe55ace3f188b8f97');
-define('SWAP_FEE_PERCENTAGE', 5);
-
-
-// 카카오 API 키
-define('KAKAO_API_KEY', 'c9e708d6ad0e4ead5dc265350b6d4d89');
-
-
-
+// 기존 함수들은 그대로 유지
 function db_connect() {
     $conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
     if ($conn->connect_error) {
-        die("Connection failed: " . $conn->connect_error);
+        error_log("Database connection failed: " . $conn->connect_error);
+        die("Connection failed");
     }
     return $conn;
 }
+
+
 
 /**
  * 세션 시작 함수
@@ -208,15 +269,6 @@ function is_phone_duplicate($phone) {
     return $duplicate;
 }
 
-
-
-// SMTP 설정
-define('SMTP_HOST', 'mail.lidyahk.com');
-define('SMTP_PORT', 465); // SSL 사용 시
-define('SMTP_USERNAME', 'jesus@lidyahk.com');
-define('SMTP_PASSWORD', 'lidya2016$');
-define('SMTP_FROM', 'jesus@lidyahk.com');
-define('SMTP_FROM_NAME', '예수 세례주화 NFT 프로젝트');
 
 
 

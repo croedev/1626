@@ -79,12 +79,16 @@
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_members.php">회원 관리</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_orders.php">주문 관리</a></li>
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_commissions.php">수수료 관리</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/admin/commission_calculate.php">수수료정산</a></li>
+                   
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_withdrawals.php">출금신청처리</a></li>
                     <li class="nav-item"><a class="nav-link" href="/org_chart">추천조직도</a></li>
-                    <li class="nav-item"><a class="nav-link" href="/admin/admin_notice.php">공지사항</a></li>
+
                     <li class="nav-item"><a class="nav-link" href="/admin/admin_prize_apply.php">경품응모</a></li>
-                       <li class="nav-item"><a class="nav-link" href="/admin/admin_nft.php">NFT조회</a></li>
+                       <li class="nav-item"><a class="nav-link" href="/admin/admin_nft.php">NFT보유조회</a></li>
+                                           <li class="nav-item"><a class="nav-link" href="/admin/admin_sere_swap.php">SERE스왑</a></li>
+                                           <li class="nav-item"><a class="nav-link" href="/admin/admin_address.php">주소생성</a></li>
+                                           <li class="nav-item"><a class="nav-link" href="/admin/admin_notice.php">공지사항</a></li>
+                    <li class="nav-item"><a class="nav-link" href="/admin/commission_calculate.php">수수료정산</a></li>
                 </ul>
             </div>
         </div>

@@ -177,11 +177,12 @@ class BSCClient {
     }
 
     public function sendTransaction($from, $to, $amount, $privateKey, $isToken = false) {
+        // 개인키 형식 검증
         $privateKey = preg_replace('/^0x/i', '', trim($privateKey));
-        if (!preg_match('/^[a-fA-F0-9]{64}$/', $privateKey)) {
+        if (!preg_match('/^[a-f0-9]{64}$/i', $privateKey)) {
             throw new \Exception('Private key must be a valid 64-character hex string');
         }
-
+        
         $from = strtolower($from);
         $to = strtolower($to);
 
@@ -281,7 +282,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     COMPANY_SERE_ADDRESS,
                     $user['erc_address'],
                     $sereAmount,
-                    COMPANY_PRIVATE_KEY,
+                    getCompanyPrivateKey(), // COMPANY_PRIVATE_KEY 대신 함수 사용
                     true
                 );
                 if (!$txHash) {

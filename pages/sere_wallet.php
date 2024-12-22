@@ -30,6 +30,8 @@ if (!$user) {
     exit;
 }
 
+
+
 class BSCClient {
     private $rpcUrl;
     private $contractAddress;
@@ -37,10 +39,11 @@ class BSCClient {
     private $encryption_key;
 
     public function __construct($rpcUrl, $contractAddress, $contractABI) {
-        $this->rpcUrl = $rpcUrl;
+        $this->rpcUrl = env('BSC_RPC_URL', $rpcUrl);  // fallback 값으로 기존 값 사용
         $this->contractAddress = $contractAddress;
         $this->contractABI = json_decode($contractABI, true);
-        $this->encryption_key = ENCRYPTION_KEY;
+            // 이 부분만 수정 - ENCRYPTION_KEY 상수 대신 직접 문자열 지정
+        $this->encryption_key = env('ENCRYPTION_KEY', 'SERE_erc20_encryption_key_2024');  
     }
 
     private function rpcCall($method, $params = []) {
@@ -117,6 +120,7 @@ class BSCClient {
         return $decrypted;
     }
 
+
     public function sendTransaction($from, $to, $amount, $encryptedPrivateKey, $isToken = false) {
         $privateKey = $this->decryptPrivateKey($encryptedPrivateKey);
 
@@ -154,7 +158,7 @@ class BSCClient {
     }
 
     public function getTransactionHistoryFromBlockchain($address, $page = 1, $limit = 10) {
-        $apiKey = BSCSCAN_API_KEY;
+        $apiKey = env('BSCSCAN_API_KEY', BSCSCAN_API_KEY);  // fallback 값으로 기존 값 사용
 
         $bnbParams = [
             'module' => 'account',

@@ -1,6 +1,7 @@
 <?php
 // 설정 파일 포함
 require_once __DIR__ . '/includes/config.php';
+
 date_default_timezone_set('Asia/Seoul');
 
 // URL에서 경로 추출 (GET 파라미터 제거)
@@ -140,6 +141,11 @@ switch ($request_uri) {
     break;  
 
 
+    case '/erc_address':
+    require __DIR__ . '/pages/erc_address.php';
+    break;  
+
+
     default:
         // 404 에러 페이지
         header("HTTP/1.0 404 Not Found");
@@ -148,53 +154,3 @@ switch ($request_uri) {
 }
 
 ?>
-
-<!-- //홈화면 추가 -->
-
-<link rel="manifest" href="/manifest.json">
-<script>
-if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('/service-worker.js')
-        .then((registration) => {
-            console.log('Service Worker 등록 성공:', registration);
-        })
-        .catch((error) => {
-            console.log('Service Worker 등록 실패:', error);
-        });
-}
-</script>
-
-<button id="add-to-home-btn" style="display: none;">홈화면에 추가</button>
-
-<script>
-let deferredPrompt;
-
-window.addEventListener('beforeinstallprompt', (e) => {
-    // 기본 동작 방지 및 이벤트 저장
-    e.preventDefault();
-    deferredPrompt = e;
-
-    // 버튼을 보이게 함
-    const addToHomeBtn = document.getElementById('add-to-home-btn');
-    addToHomeBtn.style.display = 'block';
-
-    // 버튼 클릭 시 홈 화면 추가
-    addToHomeBtn.addEventListener('click', () => {
-        deferredPrompt.prompt();
-        deferredPrompt.userChoice.then((choiceResult) => {
-            if (choiceResult.outcome === 'accepted') {
-                console.log('홈 화면에 추가되었습니다.');
-            } else {
-                console.log('홈 화면 추가가 취소되었습니다.');
-            }
-            deferredPrompt = null;
-        });
-    });
-});
-
-// 앱이 이미 설치된 경우 버튼 숨김
-window.addEventListener('appinstalled', () => {
-    console.log('앱이 이미 설치되었습니다.');
-    document.getElementById('add-to-home-btn').style.display = 'none';
-});
-</script>

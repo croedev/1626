@@ -6,7 +6,7 @@ ini_set('error_log', '/home/lidyahkc/dir/1626.lidyahk.com/pages/error.log');
 
 session_start();
 require_once '../includes/config.php';
-require_once '../pages/erc_address.php';
+require_once './fnc_address.php';
 
 // 관리자 권한 체크
 if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_id'], [0, 1, 3, 20])) {

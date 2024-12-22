@@ -1,8 +1,8 @@
 <?php
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
-ini_set('error_log', '/path/to/error.log');
+ini_set('error_log', '/home/lidyahkc/dir/1626.lidyahk.com/pages/error.log');
 
 
 require_once __DIR__ . '/../vendor/autoload.php';
