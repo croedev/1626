@@ -43,6 +43,98 @@ $stmt->close();
 $myTotalSwap = $sumRow ? intval($sumRow['total_swap']) : 0;
 
 
+
+// sere_swap.php 파일 상단에 추가할 제한 체크 함수
+function getUserSwapRestriction($conn, $user_id, $request_amount) {
+    // 1. 먼저 전체 회원 대상 누적 스왑 제한 체크 (1000개)
+    $query = "SELECT COALESCE(SUM(request_amount), 0) as total_swap 
+              FROM sere_swap 
+              WHERE user_id = ?";
+    $stmt = $conn->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $totalSwap = $stmt->get_result()->fetch_assoc()['total_swap'];
+    
+    // 전체 회원 기본 제한 (1000개) 체크
+    if (($totalSwap + $request_amount) > 1000) {
+        return [
+            'restricted' => true,
+            'message' => sprintf(
+                "스왑 한도 초과입니다.\n현재까지 스왑한 수량: %d개\n추가 스왑 가능 수량: %d개",
+                $totalSwap,
+                max(0, 1000 - $totalSwap)
+            )
+        ];
+    }
+
+    // 2. 개별 사용자 그룹 제한 체크
+
+    $case1_users = [85,1118,764,27726,2254,
+                    351,583,643,1106,620,585,654,623,891,625,641,643,
+                    329,25067,26201,24258,1757,2277
+                    ];               // 완전 전송 불가
+    $case2_users = [2719];              // 특정기간 내 100개 제한
+    $case3_users = [12567123, 3509323]; // 특정기간 내 1000개 제한
+
+
+    // 제한 기간 설정
+    $start_date = '2024-12-22 00:00:00';
+    $end_date = '2025-12-31 23:59:59';
+
+    // case1: 완전 스왑 제한
+    if (in_array($user_id, $case1_users)) {
+        return [
+            'restricted' => true,
+            'message' => '이 계정은 현재 스왑이 제한되어 있습니다.'
+        ];
+    }
+
+    // case2, case3 체크
+    $is_case2 = in_array($user_id, $case2_users);
+    $is_case3 = in_array($user_id, $case3_users);
+
+    if (!$is_case2 && !$is_case3) {
+        return ['restricted' => false, 'message' => ''];
+    }
+
+    // 기간 내 스왑한 총량 확인
+    $sql = "SELECT COALESCE(SUM(request_amount), 0) as total_swapped 
+            FROM sere_swap
+            WHERE user_id = ? 
+              AND request_date BETWEEN ? AND ?";
+            
+    $stmt = $conn->prepare($sql);
+    $stmt->bind_param("iss", $user_id, $start_date, $end_date);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $already_swapped = $result->fetch_assoc()['total_swapped'];
+
+    // 케이스별 한도 체크
+    $limit_amount = $is_case2 ? 100 : 1000;
+    $total_after = $already_swapped + $request_amount;
+
+    if ($total_after > $limit_amount) {
+        return [
+            'restricted' => true,
+            'message' => sprintf(
+                "※개별 스왑 제한 안내 ※
+                %s ~ %s 기간 중 최대 %d개까지 스왑 가능합니다.
+                (현재까지 스왑: %d개 / 추가 %d개 스왑 불가)",
+                 
+                date('Y-m-d', strtotime($start_date)),
+                date('Y-m-d', strtotime($end_date)),
+                $limit_amount,
+                $already_swapped,
+                $request_amount
+            )
+        ];
+    }
+
+    return ['restricted' => false, 'message' => ''];
+}
+
+
+
 // ==================================
 // BSCClient 클래스
 // ==================================
@@ -233,6 +325,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     throw new \Exception('유효하지 않은 수량입니다.');
                 }
                 $amount = intval($_POST['amount']);
+
+
+                  // 제한 체크 (신규 추가)
+                    $restriction = getUserSwapRestriction($conn, $user_id, $amount);
+                    if ($restriction['restricted']) {
+                        throw new \Exception($restriction['message']);
+                    }
+                    
 
                 // 개인별 누적 스왑 한도 체크
                 $query = "SELECT IFNULL(SUM(request_amount), 0) as total_swap 
@@ -509,6 +609,9 @@ include __DIR__ . '/../includes/header.php';
             border-radius: 5px;
             margin-bottom: 10px;
             display: none;
+            font-size: 14px;
+            color: red;
+            font-family: 'Noto Serif KR', serif;
         }
 
         @media (max-width: 768px) {
@@ -577,7 +680,7 @@ include __DIR__ . '/../includes/header.php';
             <!-- 보유 NFT Token 수량, 누적 스왑수량 표시 -->
             <div class="swap-info mb20" >
 
-  <div class="info-item flex-x-end">
+                <div class="info-item flex-x-end">
                     <div class="notoserif text-blue5">현재까지 스왑된 수량 :
                       <span class="text-orange"><i class="fas fa-exchange-alt"></i> <?php echo number_format($myTotalSwap); ?> 개</span>
                     </div>
