@@ -577,7 +577,7 @@ include __DIR__ . '/../includes/header.php';
             <div class="swap-info mb20" >
 
   <div class="info-item flex-x-end">
-                    <div class="fs-12 notoserif text-blue5">현재까지 스왑된 수량 :
+                    <div class="notoserif text-blue5">현재까지 스왑된 수량 :
                       <span class="text-orange"><i class="fas fa-exchange-alt"></i> <?php echo number_format($myTotalSwap); ?> 개</span>
                     </div>
                 </div>
