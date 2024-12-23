@@ -146,6 +146,15 @@ switch ($request_uri) {
     break;  
 
 
+    case '/order_digifinex':
+    require __DIR__ . '/pages/order_digifinex.php';
+    break; 
+
+
+    case '/order_apply_digifinex':
+    require __DIR__ . '/pages/order_apply_digifinex.php';
+    break; 
+
     default:
         // 404 에러 페이지
         header("HTTP/1.0 404 Not Found");

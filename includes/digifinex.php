@@ -108,7 +108,7 @@ function digiPrice($symbol, $currency = 'usdt') {
             return sprintf("%.2f USDT (KRW 환율 없음)", $usdt_price);
         }
         $krw_price = $usdt_price * $usdt_krw_rate;
-        return sprintf("%.2f KRW", $krw_price);
+        return sprintf("%.2f KRW", $krw_price); // 소수점 없이 출력
     } else {
         // 지원하지 않는 통화일 경우
         return "지원하지 않는 통화입니다. (usdt 또는 krw)";

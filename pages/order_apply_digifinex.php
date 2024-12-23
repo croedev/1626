@@ -19,38 +19,42 @@ if (!isset($_SESSION['user_id'])) {
     $user = null;
     $user_mileage = 0;
     $user_cash_points = 0;
-} else {
-    $showModal = false;
-    $conn = db_connect();
-    $user_id = $_SESSION['user_id'];
+    } else {
+        $showModal = false;
+        $conn = db_connect();
+        $user_id = $_SESSION['user_id'];
 
-    // 사용자 정보 가져오기
-    $sql = "SELECT * FROM users WHERE id = ?";
-    $stmt = $conn->prepare($sql);
-    $stmt->bind_param("i", $user_id);
-    $stmt->execute();
-    $result = $stmt->get_result();
-    $user = $result->fetch_assoc();
+        // 사용자 정보 가져오기
+        $sql = "SELECT * FROM users WHERE id = ?";
+        $stmt = $conn->prepare($sql);
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        $user = $result->fetch_assoc();
 
-    if (!$user) {
-        header("Location: /login?redirect=order_apply");
-        exit();
-    }
+        if (!$user) {
+            header("Location: /login?redirect=order_apply");
+            exit();
+        }
 
-    $user_mileage = $user['mileage_points'];
-    $user_cash_points = $user['cash_points'];
+        $user_mileage = $user['mileage_points'];
+        $user_cash_points = $user['cash_points'];
 }
 
 
 //현재 가격 구간 정보 가져오기
-$current_tier = getCurrentPricingTier($conn);
-if (!$current_tier) {
-    $price = 0;
-    $tier_error = "현재 구매 가능한 가격이 없습니다.";
-} else {
-    $price = $current_tier['price'];
-    $tier_error = "";
-}
+
+// 예: digiPrice('eth', 'krw')가 숫자(또는 숫자 형태 문자열)를 반환
+$raw_price = digiPrice('sere', 'krw');
+
+// 1) 실제 계산에 쓰일 변수(자바스크립트에 넘길 것)
+//$price = floatval($raw_price); // 실수로변형
+$price = intval($raw_price); // 혹은 (int)$raw_price
+
+// 2) 화면에 보여줄 때만 number_format()을 사용
+$displayPrice = number_format($price);
+$price_usdt = digiPrice('sere', 'usdt');
+
 
 
 // 상품 ID를 동적으로 가져오는 코드 추가
@@ -269,14 +273,14 @@ include 'includes/header.php';
 
     <div class="px-20">
 
-        <p class="mt20 fs-16 text-orange">명칭: The Baptism of Jesus, 1626 NFT(Limited)</p>
-        <p>단가: <span class="rem-12 text-warning"><?php echo number_format($price); ?>원</span> (부가세 포함)</p>
-        <p class="flex-start">구매수량:
-        <div class="quantity-control ">
-            <button class="quantity-btn" id="decrease-quantity">-</button>
-            <input type="number" id="quantity" value="1" min="1" max="100" class="form-control text-center w-100">
-            <button class="quantity-btn" id="increase-quantity">+</button>
-        </div>
+        <p class="mt20 fs-20 text-orange"><img src="/SERE_logo.png" style="width: 30px; height: 30px;">The Baptism of Jesus,1626 </p>
+        <hr>
+        <p>단가: <span class="rem-12 text-warning"><?php echo number_format($price); ?>원</span><br> (실시간 거래소가격 : <span class="rem-10 text-green3"><?php echo $price_usdt; ?>)</p> 
+              <p class="flex-start">구매수량: 
+            <button class="quantity-btn" id="decrease-quantity" style="display:inline-block">-</button>
+            <input type="number" id="quantity" value="1" min="1" max="100" class="form-control text-center" style="width:100px; display:inline-block">
+            <button class="quantity-btn" id="increase-quantity" style="display:inline-block">+</button>
+        </p>
         </p>
         <p class="rem-12">총 구매금액: <span class="rem-14 text-warning"
                 id="total-amount"><?php echo number_format($price); ?>원</span></p>

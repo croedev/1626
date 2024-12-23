@@ -284,7 +284,7 @@ include 'admin_header.php';
                         <td class="fs-11">
                             NFT: <?php echo number_format($swap['request_amount']); ?>개<br>
                             SERE: <?php echo number_format($swap['sere_amount'], 8); ?><br>
-                            수수료: <?php echo $swap['fee_percentage']; ?>%
+                            수수료: <?php echo $swap['fee_percentage']; ?>개
                         </td>
                         <td class="fs-11 hash-text">
                             <?php echo substr($swap['sere_address'], 0, 20); ?>...<br>
