@@ -8,8 +8,8 @@ $conn = db_connect();
 // 현재 가격 구간 정보 가져오기
 $current_tier = getCurrentPricingTier($conn);
 
-$current_price = digiPrice('xrp', 'krw');
-$current_usdt = digiPrice('xrp', 'usdt');
+$current_price = digiPrice('sere', 'krw');
+$current_usdt = digiPrice('sere', 'usdt');
 
 // 전체 누적 판매 수량 가져오기 
 $total_sold = getTotalSoldQuantity($conn);
@@ -196,7 +196,7 @@ include 'includes/header.php';
         </div>
 
         <div class="price-item height80 bg-blue100 border-1">            
-            <div class="price-label w150 text-left fs-18">*판매가격<br><span class="fs-13 text-red5">(실시간 거래소가격)</span></div>
+            <div class="price-label w150 text-left fs-18">*판매가격 <i class="fas fa-sync-alt refresh-icon" onclick="location.reload();" style="cursor:pointer; font-size:14px;"></i><br><span class="fs-13 text-red5">(실시간 거래소가격)</span></div>
             <div class="price-value text-left fs-20 text-yellow5 mr20"><?php echo number_format($current_price); ?>원<br>
             <span class="fs-15 text-green5 float-right"><?php echo $current_usdt; ?> <span class="fs-12"></span></span></div>                        
         </div>

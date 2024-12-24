@@ -1,17 +1,23 @@
 <?php
 session_start();
 require_once 'includes/config.php';
-$pageTitle = 'NFT 구매';
-
-include 'includes/header.php';
+require_once 'includes/digifinex.php';
 
 $conn = db_connect();
 
 // 현재 가격 구간 정보 가져오기
 $current_tier = getCurrentPricingTier($conn);
 
+$current_price = digiPrice('sere', 'krw');
+$current_usdt = digiPrice('sere', 'usdt');
+
 // 전체 누적 판매 수량 가져오기 
 $total_sold = getTotalSoldQuantity($conn);
+
+
+$pageTitle = 'NFT 구매';
+include 'includes/header.php';
+
 
 ?>
 
@@ -182,16 +188,17 @@ $total_sold = getTotalSoldQuantity($conn);
 
     <div class="price-display bg-gray90 card">
         <div class="price-item height50">
-            <div class="price-label text-left w200">*상장(예정)가격</div>
+            <div class="price-label text-left w200">*거래소 실시간가격</div>
             <div class="fs-18 flex-y-center mr20">
-                3,000원
-               <img src="assets/images/arrow_up.png" height="30px;" alt="상승 화살표"> 
+                <?php echo number_format($current_price); ?>원
+               <!-- <img src="assets/images/arrow_up.png" height="30px;" alt="상승 화살표">  -->
             </div>
         </div>
 
         <div class="price-item height80 bg-blue100 border-1">            
-            <div class="price-label w150 text-left fs-18">*판매가격<br><span class="fs-13 text-green5">(실시간 거래소가격)</span></div>
-            <div class="price-value text-left fs-20 text-yellow5 mr20"><?php echo number_format($current_tier['price']); ?>원</div>                        
+            <div class="price-label w150 text-left fs-18">*판매가격 <i class="fas fa-sync-alt refresh-icon" onclick="location.reload();" style="cursor:pointer; font-size:14px;"></i><br><span class="fs-13 text-red5">(실시간 거래소가격)</span></div>
+            <div class="price-value text-left fs-20 text-yellow5 mr20"><?php echo number_format($current_price); ?>원<br>
+            <span class="fs-15 text-green5 float-right"><?php echo $current_usdt; ?> <span class="fs-12"></span></span></div>                        
         </div>
 
       
@@ -208,8 +215,8 @@ $total_sold = getTotalSoldQuantity($conn);
 </div>
 
 <div class="w-100 flex-x-center mt30">
-      <a href="/order_apply" class="btn-purchase text-center underline-none ">
-        구매하기 <span class="fs-15">(1개당 <span class="fx-12 text-red8"><?php echo number_format($current_tier['price']); ?>원)</span></span>
+      <a href="/order_apply_digifinex" class="btn-purchase text-center underline-none ">
+        구매하기 <span class="fs-15">(1개당 시세 <span class="fx-12 text-red8"><?php echo number_format($current_price); ?>원)</span></span>
     </a>
 </div>
 
@@ -217,104 +224,104 @@ $total_sold = getTotalSoldQuantity($conn);
 
 <!-- 레플리카 경품추첨 링크 -->
 <script>
-    .prize-promo {
-    background: linear-gradient(145deg, #1a1a1a, #222);
-    border: 1px solid rgba(212,175,55,0.2);
-    border-radius: 15px;
-    padding: 20px;
-    text-align: center;
-    position: relative;
-    overflow: hidden;
-}
+            .prize-promo {
+            background: linear-gradient(145deg, #1a1a1a, #222);
+            border: 1px solid rgba(212,175,55,0.2);
+            border-radius: 15px;
+            padding: 20px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-.prize-promo::before {
-    content: '';
-    position: absolute;
-    top: -1px;
-    left: -1px;
-    right: -1px;
-    bottom: -1px;
-    background: linear-gradient(45deg, #d4af37, transparent, #d4af37);
-    z-index: 0;
-    opacity: 0.1;
-    animation: shimmer 2s linear infinite;
-}
+        .prize-promo::before {
+            content: '';
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            right: -1px;
+            bottom: -1px;
+            background: linear-gradient(45deg, #d4af37, transparent, #d4af37);
+            z-index: 0;
+            opacity: 0.1;
+            animation: shimmer 2s linear infinite;
+        }
 
-.prize-promo-header h4 {
-    margin: 0;
-    font-size: 1.2em;
-    font-weight: bold;
-    position: relative;
-}
+        .prize-promo-header h4 {
+            margin: 0;
+            font-size: 1.2em;
+            font-weight: bold;
+            position: relative;
+        }
 
-.prize-competition {
-    margin: 15px 0;
-    position: relative;
-}
+        .prize-competition {
+            margin: 15px 0;
+            position: relative;
+        }
 
-.competition-label {
-    font-size: 0.9em;
-    color: #888;
-    margin-bottom: 10px;
-    display: block;
-}
+        .competition-label {
+            font-size: 0.9em;
+            color: #888;
+            margin-bottom: 10px;
+            display: block;
+        }
 
-.competition-numbers {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 10px;
-    margin: 10px 0;
-}
+        .competition-numbers {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            margin: 10px 0;
+        }
 
-.competition-numbers .odometer {
-    font-size: 2.5em;
-    color: #d4af37;
-    font-weight: bold;
-    text-shadow: 0 0 10px rgba(212,175,55,0.3);
-}
+        .competition-numbers .odometer {
+            font-size: 2.5em;
+            color: #d4af37;
+            font-weight: bold;
+            text-shadow: 0 0 10px rgba(212,175,55,0.3);
+        }
 
-.competition-divider,
-.competition-total {
-    font-size: 2.5em;
-    color: #d4af37;
-    font-weight: bold;
-}
+        .competition-divider,
+        .competition-total {
+            font-size: 2.5em;
+            color: #d4af37;
+            font-weight: bold;
+        }
 
-.btn-prize-apply {
-    background: linear-gradient(45deg, #d4af37, #f2d06b);
-    color: #000;
-    border: none;
-    padding: 12px 30px;
-    border-radius: 25px;
-    font-size: 1.1em;
-    font-weight: bold;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    width: 80%;
-    margin-top: 10px;
-}
+        .btn-prize-apply {
+            background: linear-gradient(45deg, #d4af37, #f2d06b);
+            color: #000;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 25px;
+            font-size: 1.1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 80%;
+            margin-top: 10px;
+        }
 
-.btn-prize-apply:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 5px 15px rgba(212,175,55,0.4);
-}
+        .btn-prize-apply:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(212,175,55,0.4);
+        }
 
-.btn-prize-apply i {
-    margin-left: 8px;
-    font-size: 0.9em;
-    transition: transform 0.3s ease;
-}
+        .btn-prize-apply i {
+            margin-left: 8px;
+            font-size: 0.9em;
+            transition: transform 0.3s ease;
+        }
 
-.btn-prize-apply:hover i {
-    transform: translateX(5px);
-}
+        .btn-prize-apply:hover i {
+            transform: translateX(5px);
+        }
 
-@keyframes shimmer {
-    0% { opacity: 0.1; }
-    50% { opacity: 0.2; }
-    100% { opacity: 0.1; }
-}
+        @keyframes shimmer {
+            0% { opacity: 0.1; }
+            50% { opacity: 0.2; }
+            100% { opacity: 0.1; }
+        }
 </script>
 
 <div class="prize-promo mt60 mb50">

@@ -3,10 +3,10 @@ session_start();
 require_once __DIR__ . '/../includes/config.php';
 
 // 관리자 권한 체크
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_id'], [1, 2])) {
-    header("Location: /login"); 
-    exit();
-}
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_id'], [1, 2])) {
+//     header("Location: /login"); 
+//     exit();
+// }
 
 $conn = db_connect();
 $message = '';

@@ -9,20 +9,20 @@ require_once '../includes/config.php';
 require_once './fnc_address.php';
 
 // 관리자 권한 체크
-if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_id'], [0, 1, 3, 20])) {
-    // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
-    if (!isset($_SESSION['user_id'])) {
-        header("Location: /login?redirect=/admin");
-        exit();
-    }
+// if (!isset($_SESSION['user_id']) || !in_array($_SESSION['user_id'], [0, 1, 3, 20])) {
+//     // 로그인되지 않은 경우 로그인 페이지로 리다이렉트
+//     if (!isset($_SESSION['user_id'])) {
+//         header("Location: /login?redirect=/admin");
+//         exit();
+//     }
 
-    // 관리자 권한이 없는 경우
-    echo "<script>
-        alert('관리자 권한이 없습니다.');
-        window.location.href = '/';
-    </script>";
-    exit();
-}
+//     // 관리자 권한이 없는 경우
+//     echo "<script>
+//         alert('관리자 권한이 없습니다.');
+//         window.location.href = '/';
+//     </script>";
+//     exit();
+// }
 
 
 $conn = db_connect();
@@ -141,7 +141,7 @@ include 'admin_header.php';
     <div class="search-form" style="background: #2d2d2d; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
         <form method="GET" class="row g-3">
             <div class="col-md-3">
-                <input type="text" name="search_name" class="form-control bg-dark text-light" placeholder="이름 검색"
+                <input type="text" name="search_name" class="form-control bg-dark " style="color: #fff!important;" placeholder="이름 검색"
                     value="<?php echo htmlspecialchars($search_name); ?>">
             </div>
             <div class="col-md-3">
@@ -457,6 +457,7 @@ function regenerateDecryptKey(userId) {
     .form-control,
     .form-select {
         border: 1px solid #d4af37;
+        color: #fff!important;
     }
 
     .pagination {
